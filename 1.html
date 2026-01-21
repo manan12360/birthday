@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Day 1 - The Eternal Scroll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #121212; /* Deep black to make the 16 Pro OLED pop */
+            font-family: 'Quicksand', sans-serif;
+            touch-action: none;
+        }
+
+        #canvas-container { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: 1; 
+        }
+        
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            /* Respect iPhone 16 Pro Dynamic Island and Safe Areas */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        #letter-container {
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            color: #3e2723; /* Dark brown ink */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        h1 { 
+            font-family: 'Dancing Script', cursive; 
+            font-size: clamp(2rem, 9vw, 3rem); 
+            margin-bottom: 15px; 
+        }
+
+        p { 
+            font-size: clamp(0.9rem, 4.5vw, 1.2rem); 
+            line-height: 1.6; 
+            font-weight: 600; 
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 10%;
+            color: #ffd1d1;
+            letter-spacing: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(255,182,193,0.6);
+            font-weight: 600;
+        }
+
+        .back-btn {
+            position: absolute;
+            bottom: 16%;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 14px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: 0.4s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .back-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="ui-layer">
+    <div id="letter-container">
+        <h1>For My Princess</h1>
+        <p>
+            You are the sun in my sky and the light in my life. This scroll is just the start of 19 days of surprises for the girl who deserves the world. 
+            <br><br>
+            I love you, baby seal.
+        </p>
+    </div>
+    <div class="hint" id="hint">Tap to Unroll</div>
+    <a href="index.html" class="back-btn" id="backBtn">Return Home</a>
+</div>
+
+<script>
+    let scene, camera, renderer, scrollGroup, paper, particles;
+    let isOpened = false;
+
+    function init() {
+        scene = new THREE.Scene();
+        
+        // Responsive Camera for iPhone 16 Pro aspect ratio
+        const fov = window.innerWidth < 600 ? 65 : 45;
+        camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = window.innerWidth < 600 ? 16 : 12;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3)); // 3 for high-density iPhone screens
+        
+        // OLED Optimization
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // --- BACKGROUND ANIMATION (Moving Heart Dust) ---
+        const pGeo = new THREE.BufferGeometry();
+        const pCount = 2000;
+        const pos = new Float32Array(pCount * 3);
+        for(let i=0; i<pCount*3; i++) { 
+            pos[i] = (Math.random() - 0.5) * 60; 
+        }
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const pMat = new THREE.PointsMaterial({ 
+            size: 0.06, 
+            color: 0xffb6c1, 
+            transparent: true, 
+            opacity: 0.6 
+        });
+        particles = new THREE.Points(pGeo, pMat);
+        scene.add(particles);
+
+        // --- THE BIG SCROLL ---
+        scrollGroup = new THREE.Group();
+
+        // High-Quality Paper
+        const paperGeo = new THREE.PlaneGeometry(5, 1, 32, 1);
+        const paperMat = new THREE.MeshStandardMaterial({ 
+            color: 0xfff3e0, 
+            side: THREE.DoubleSide, 
+            roughness: 1,
+            metalness: 0
+        });
+        paper = new THREE.Mesh(paperGeo, paperMat);
+        paper.scale.y = 0.05; 
+        scrollGroup.add(paper);
+
+        function createPremiumRoller(yPos) {
+            const group = new THREE.Group();
+            // Dark Wood Shaft
+            const shaftGeo = new THREE.CylinderGeometry(0.2, 0.2, 5.8, 32);
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x2d1b0e, roughness: 0.8 });
+            const shaft = new THREE.Mesh(shaftGeo, woodMat);
+            shaft.rotation.z = Math.PI / 2;
+            group.add(shaft);
+
+            // Polished Gold Pommels
+            const capGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.5, 32);
+            const goldMat = new THREE.MeshStandardMaterial({ 
+                color: 0xffd700, 
+                metalness: 0.9, 
+                roughness: 0.1 
+            });
+            const capL = new THREE.Mesh(capGeo, goldMat);
+            capL.rotation.z = Math.PI / 2;
+            capL.position.x = -2.9;
+            const capR = capL.clone();
+            capR.position.x = 2.9;
+            group.add(capL, capR);
+
+            group.position.y = yPos;
+            return group;
+        }
+
+        const topRoller = createPremiumRoller(0.1);
+        const bottomRoller = createPremiumRoller(-0.1);
+        scrollGroup.add(topRoller, bottomRoller);
+        scene.add(scrollGroup);
+
+        // Lighting System
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const spot = new THREE.PointLight(0xffffff, 0.8);
+        spot.position.set(5, 10, 10);
+        scene.add(spot);
+
+        animate();
+    }
+
+    function unroll() {
+        if (isOpened) return;
+        isOpened = true;
+
+        gsap.to("#hint", { opacity: 0, duration: 0.5 });
+
+        const rollers = scrollGroup.children.filter(c => c.type === "Group");
+        
+        // Cinematic Unroll Animation
+        gsap.to(rollers[0].position, { y: 4, duration: 2, ease: "expo.inOut" });
+        gsap.to(rollers[1].position, { y: -4, duration: 2, ease: "expo.inOut" });
+        gsap.to(paper.scale, { y: 8, duration: 2, ease: "expo.inOut" });
+
+        // Fade in text with delay
+        setTimeout(() => {
+            const container = document.getElementById('letter-container');
+            container.style.opacity = "1";
+            container.style.transform = "translateY(0)";
+            gsap.to("#backBtn", { opacity: 1, duration: 1, delay: 0.5 });
+        }, 1200);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // Particle Drift
+        particles.rotation.y += 0.0008;
+        particles.rotation.z += 0.0003;
+
+        if (!isOpened) {
+            // Hover and Sway effect
+            scrollGroup.rotation.y = Math.sin(Date.now() * 0.001) * 0.15;
+            scrollGroup.position.y = Math.sin(Date.now() * 0.0015) * 0.2;
+        }
+        
+        renderer.render(scene, camera);
+    }
+
+    // Interactions
+    window.addEventListener('mousedown', unroll);
+    window.addEventListener('touchstart', (e) => {
+        unroll();
+    }, {passive: true});
+
+    window.addEventListener('resize', () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        camera.aspect = w / h;
+        camera.fov = w < 600 ? 65 : 45;
+        camera.position.z = w < 600 ? 16 : 12;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
+
+    init();
+</script>
+</body>
+</html>
