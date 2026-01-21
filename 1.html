@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Day 1 - The Eternal Scroll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; /* OLED Pure Black */
+            font-family: 'Quicksand', sans-serif;
+            touch-action: none;
+        }
+
+        #canvas-container { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            z-index: 1; 
+        }
+        
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* TEXT CONTAINER: Fits perfectly inside the scroll */
+        #letter-container {
+            width: 80%; 
+            max-width: 300px;
+            height: 70vh; /* Long enough to cover the scroll */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            color: #3e2723; 
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        h1 { 
+            font-family: 'Dancing Script', cursive; 
+            font-size: clamp(2rem, 10vw, 3rem); 
+            margin-bottom: 20px; 
+        }
+
+        p { 
+            font-size: clamp(1rem, 5vw, 1.3rem); 
+            line-height: 1.8; 
+            font-weight: 600; 
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 5%;
+            color: #ffd1d1;
+            letter-spacing: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255,182,193,0.8);
+            z-index: 20;
+        }
+
+        .back-btn {
+            position: absolute;
+            bottom: 12%;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0;
+            transition: 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="ui-layer">
+    <div id="letter-container">
+        <h1>For My Princess</h1>
+        <p>
+            Hi baby, it’s your Spidey, so I know your birthday’s around the corner and I wanted to make it somewhat special for you. So yeah for the next 19 days for every day, a small gift will be waiting for you here , a small piece of my love. I hope I can make you smile forever. I know we have fought alot , but somewhere I’m sorry for escalating things a lot and taking it to levels it shouldn’t have reached, I promise I’ll stay with you forever, no matter how hard things get. I’ll always be your spidey and you’ll always be my gwen. with love your bubu.
+        </p>
+    </div>
+    <div class="hint" id="hint">Tap to Unroll</div>
+    <a href="index.html" class="back-btn" id="backBtn">Return Home</a>
+</div>
+
+<script>
+    let scene, camera, renderer, scrollGroup, paper, particles;
+    let isOpened = false;
+
+    function init() {
+        scene = new THREE.Scene();
+        
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        // Ultra-wide FOV for mobile to make the scroll look massive
+        camera = new THREE.PerspectiveCamera(w < 600 ? 80 : 45, w / h, 0.1, 1000);
+        camera.position.z = 10;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // --- BACKGROUND PARTICLES ---
+        const pGeo = new THREE.BufferGeometry();
+        const pCount = 1000;
+        const pos = new Float32Array(pCount * 3);
+        for(let i=0; i<pCount*3; i++) pos[i] = (Math.random() - 0.5) * 40;
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.05, color: 0xffb6c1, transparent: true, opacity: 0.5 }));
+        scene.add(particles);
+
+        // --- THE VERTICAL SCROLL ---
+        scrollGroup = new THREE.Group();
+        scrollGroup.rotation.z = Math.PI / 2; 
+
+        // Paper: Longer and slightly wider
+        const paperGeo = new THREE.PlaneGeometry(8, 1, 32, 1);
+        const paperMat = new THREE.MeshStandardMaterial({ color: 0xfff3e0, side: THREE.DoubleSide });
+        paper = new THREE.Mesh(paperGeo, paperMat);
+        paper.scale.y = 0.1; 
+        scrollGroup.add(paper);
+
+        function createRoller(yPos) {
+            const group = new THREE.Group();
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8.5, 32), new THREE.MeshStandardMaterial({ color: 0x2d1b0e }));
+            shaft.rotation.z = Math.PI / 2;
+            
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
+            const capL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.5, 32), goldMat);
+            capL.rotation.z = Math.PI / 2;
+            capL.position.x = -4.3;
+            const capR = capL.clone();
+            capR.position.x = 4.3;
+            
+            group.add(shaft, capL, capR);
+            group.position.y = yPos;
+            return group;
+        }
+
+        const topRoller = createRoller(0.05);
+        const bottomRoller = createRoller(-0.05);
+        scrollGroup.add(topRoller, bottomRoller);
+        scene.add(scrollGroup);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        animate();
+    }
+
+    function unroll() {
+        if (isOpened) return;
+        isOpened = true;
+
+        gsap.to("#hint", { opacity: 0, duration: 0.5 });
+
+        const rollers = scrollGroup.children.filter(c => c.type === "Group");
+        
+        // Massive scale to fit iPhone 16 Pro height
+        const targetHeight = 18; 
+
+        gsap.to(rollers[0].position, { y: targetHeight / 2, duration: 2.5, ease: "power3.inOut" });
+        gsap.to(rollers[1].position, { y: -targetHeight / 2, duration: 2.5, ease: "power3.inOut" });
+        gsap.to(paper.scale, { y: targetHeight, duration: 2.5, ease: "power3.inOut" });
+
+        setTimeout(() => {
+            const container = document.getElementById('letter-container');
+            container.style.opacity = "1";
+            container.style.transform = "scale(1)";
+            gsap.to("#backBtn", { opacity: 1, duration: 1 });
+        }, 1200);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        particles.rotation.y += 0.001;
+        if (!isOpened) {
+            scrollGroup.rotation.y = Math.sin(Date.now() * 0.001) * 0.15;
+            scrollGroup.position.y = Math.sin(Date.now() * 0.0015) * 0.1;
+        }
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('touchstart', unroll, {passive: true});
+    window.addEventListener('mousedown', unroll);
+    window.addEventListener('resize', () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    });
+
+    init();
+</script>
+</body>
+</html>
