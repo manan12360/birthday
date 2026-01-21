@@ -180,7 +180,7 @@
         const rollers = scrollGroup.children.filter(c => c.type === "Group");
         
         // Massive scale to fit iPhone 16 Pro height
-        const targetHeight = 18; 
+        const targetHeight = 26; 
 
         gsap.to(rollers[0].position, { y: targetHeight / 2, duration: 2.5, ease: "power3.inOut" });
         gsap.to(rollers[1].position, { y: -targetHeight / 2, duration: 2.5, ease: "power3.inOut" });
