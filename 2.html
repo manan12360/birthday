@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Day 2 - The Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;600&family=Special+Elite&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: #e5d3b3;
+            background-image: url('https://www.transparenttextures.com/patterns/pinstriped-suit.png');
+            font-family: 'Quicksand', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            overflow-x: hidden;
+        }
+
+        header { padding: 50px 20px 20px; text-align: center; }
+        h1 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: #3e2723; }
+
+        .gift-grid {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 15px;
+            justify-content: space-between;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* EQUAL WIDTH BUT DYNAMIC HEIGHT */
+        .gift-container {
+            width: 47%; /* Fixed width for 2-column layout */
+            margin-bottom: 30px;
+            position: relative;
+            cursor: pointer;
+            perspective: 1000px;
+            /* Random tilting via JS */
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 2px;
+            border: 6px solid #fffdf7;
+            box-shadow: 3px 6px 15px rgba(0,0,0,0.2);
+            background: #fffdf7;
+        }
+
+        .card-front img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .card-back {
+            position: absolute;
+            top: 0; left: 0;
+            color: #3e2723;
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            text-align: center;
+            font-family: 'Special Elite', cursive;
+            font-size: 0.75rem;
+            line-height: 1.4;
+        }
+
+        /* --- VINTAGE WRAPS --- */
+        .gift-wrap {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .wrap-0 { background: #1b4332; } 
+        .wrap-1 { background: #641220; } 
+        .wrap-2 { background: #3c2a21; } 
+        .wrap-3 { background: #001219; } 
+
+        .gift-wrap::before { content: ''; position: absolute; width: 14%; height: 100%; background: #c5a059; opacity: 0.9; }
+        .gift-wrap::after { content: ''; position: absolute; width: 100%; height: 14%; background: #c5a059; opacity: 0.9; }
+        
+        .seal { 
+            position: absolute; 
+            width: 32px; height: 32px; 
+            background: #c5a059; 
+            border-radius: 50%; 
+            z-index: 51;
+            font-size: 0.6rem;
+            color: #3e2723;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Unwrap Animation: Slides off to reveal the tilted photo */
+        .unwrapped .gift-wrap {
+            transform: translateY(-120%) rotate(10deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        footer { position: fixed; bottom: 0; width: 100%; padding: 25px; background: linear-gradient(transparent, #e5d3b3 60%); text-align: center; z-index: 100; }
+        .nav-btn {
+            background: #3e2723;
+            color: #e5d3b3;
+            padding: 10px 35px;
+            text-decoration: none;
+            font-family: 'Special Elite', cursive;
+            border-radius: 2px;
+            box-shadow: 4px 4px 0px #c5a059;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Open each gift to reveal a memory</h1>
+    <h2>Click on them to read a small note</h2>
+</header>
+
+<div class="gift-grid" id="scrapbook"></div>
+
+<footer>
+    <a href="index.html" class="nav-btn">Return Home</a>
+</footer>
+
+<script>
+  const memories = [
+        { file: 'photos/WhatsApp Image 2026-01-21 at 9.06.37 PM.jpeg', note: "First time meeting your family, and probably the first time kisi aur ne humari photo li ho" },
+        { file: 'photos/WhatsApp Image 2026-01-21 at 9.06.38 PM.jpeg', note: "Not the best date ik, we fought , we cried , we laughed but there would be no one except you that i want to be with." },
+        { file: 'photos/WhatsApp Image 2026-01-21 at 9.06.37 PM (1).jpeg', note: "Ik mera mood off tha , but you looked so pretty in that color." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 10.00.28 PM.jpeg', note: "Ended the year with my absolute favorite person. I just pray that we stay together till the end." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 10.00.10 PM.jpeg', note: "If my baby needs me , i'll be there no matter what." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.59.43 PM.jpeg', note: "Surprise ki aisi taisi hogyi , but it was still worth it to see that smile on your face." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.59.25 PM.jpeg', note: "Meri hoodie ka dhyan rakhio motu varna marunga." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.59.03 PM.jpeg', note: "You made me love ravioli, and you." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.57.55 PM.jpeg', note: "Movie toh dekhne dete nhi aap but koinii,mere bache ko kya bol sakta mai." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.57.28 PM.jpeg', note: "No matter how many times we meet at the same place, I can never get bored because I get to meet you." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.56.35 PM.jpeg', note: "You are my bacha , even when you act dumb , even when you get irritated, you'll always be my bacha.I always keep those polaroids in my wallet, and in my heart" },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.53.57 PM.jpeg', note: "IT. WAS. PERFECT. Also pigeons can't hurt you." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.53.28 PM.jpeg', note: "Green looks good on you, vaise toh everything looks good on my baby" },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.53.03 PM.jpeg', note: "Thank you for always caring for me , you are the best. I love you the most,my gwen." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.52.42 PM.jpeg', note: "I just want you to know that im sorry for hurting you alot babe, but I promise to love you even more." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.51.11 PM.jpeg', note: "Kitna excited tha movie dekhne ke lie,par aapne dekhne kaha di.But it was funnn.." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.50.44 PM.jpeg', note: "First date as a couple? I still wear that bracelet cuz it always reminds me that i have such a beautiful caring girlfriend in my life." },
+        { file: 'photos/WhatsApp Image 2025-12-31 at 9.50.17 PM.jpeg', note: "The moment I saw you, I fell in love. Idc how the pizza was cuz i was so lost in your eyes." }
+    ];
+
+    const scrapbook = document.getElementById('scrapbook');
+
+    memories.forEach((mem, index) => {
+        const container = document.createElement('div');
+        container.className = 'gift-container';
+        
+        // Randomly tilt each gift slightly (between -4 and 4 degrees)
+        const randomTilt = (Math.random() * 8 - 4).toFixed(2);
+        container.style.transform = `rotate(${randomTilt}deg)`;
+        
+        const colorIdx = index % 4;
+        
+        container.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front" id="front-${index}">
+                    <img src="${mem.file}" onload="updateHeights(${index})">
+                    <div class="gift-wrap wrap-${colorIdx}">
+                        <div class="seal">TAP</div>
+                    </div>
+                </div>
+                <div class="card-back" id="back-${index}">
+                    <p>${mem.note}</p>
+                </div>
+            </div>
+        `;
+        
+        container.onclick = () => {
+            if (!container.classList.contains('unwrapped')) {
+                container.classList.add('unwrapped');
+            } else {
+                container.classList.toggle('flipped');
+            }
+        };
+
+        scrapbook.appendChild(container);
+    });
+
+    function updateHeights(index) {
+        const front = document.getElementById(`front-${index}`);
+        const back = document.getElementById(`back-${index}`);
+        if (front && back) {
+            back.style.height = front.offsetHeight + 'px';
+        }
+    }
+</script>
+</body>
+</html>
