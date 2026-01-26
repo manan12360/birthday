@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+        
+        body {
+            background: #fce4ec; 
+            color: #2c3e50;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #web-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 30px 10px 10px;
+            text-align: center;
+            z-index: 10;
+        }
+        h1 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 1.8rem; 
+            color: #4a148c; 
+            font-style: italic;
+        }
+        .hint { 
+            font-size: 0.6rem; 
+            opacity: 0.6; 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            color: #1a237e; 
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .play-area {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .web-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .center-logo-wrapper {
+            width: 180px; 
+            height: 180px;
+            position: relative;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 40px rgba(74, 20, 140, 0.05); 
+        }
+
+        .custom-logo {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            filter: sepia(1) saturate(5) hue-rotate(200deg) brightness(0.4);
+            opacity: 0.9;
+        }
+
+        .logo-text {
+            position: absolute;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 0.55rem;
+            color: #1a237e;
+            pointer-events: none;
+            width: 120px;
+            z-index: 31;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .promise-node {
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            background: #ffffff;
+            border: 1px solid #1a237e; 
+            border-radius: 50%;
+            cursor: pointer; 
+            pointer-events: all;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a237e;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        #message-area {
+            padding: 20px 40px;
+            text-align: center;
+            min-height: 130px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #message-text { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 1.25rem; 
+            font-weight: 600;
+            color: #1a237e;
+            opacity: 0;
+            line-height: 1.5;
+            transition: opacity 0.4s;
+        }
+
+        #final-screen {
+            position: fixed; 
+            inset: 0;
+            background: #fce4ec;
+            display: none;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            z-index: 9999;
+            text-align: center; 
+            padding: 40px;
+        }
+        .final-text { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 2.2rem; 
+            color: #4a148c; 
+            margin-bottom: 40px;
+            opacity: 0;
+            line-height: 1.3;
+        }
+        
+        .home-btn { 
+            font-family: 'Montserrat', sans-serif;
+            color: #1a237e; 
+            text-decoration: none; 
+            font-size: 0.7rem; 
+            font-weight: 500;
+            border: 1px solid #1a237e; 
+            padding: 12px 25px; 
+            border-radius: 2px; 
+            background: #fff;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="web-canvas"></canvas>
+
+    <div id="main-content" style="height: 100vh; width: 100vw; display: flex; flex-direction: column;">
+        <header>
+            <h1>The web of promises</h1>
+            <p class="hint">Click on each button to read a promise</p>
+        </header>
+
+        <div class="play-area">
+            <div class="web-container" id="web-container">
+                <div class="center-logo-wrapper" id="logo-anchor">
+                    <img src="photos/sp.webp" alt="Spider Emblem" class="custom-logo">
+                </div>
+            </div>
+        </div>
+
+        <div id="message-area">
+            <p id="message-text"></p>
+        </div>
+    </div>
+
+    <div id="final-screen">
+        <p class="final-text" id="final-msg">I promise to be your Spidey forever.</p>
+        <a href="index.html" class="home-btn">Return Home</a>
+    </div>
+
+    <script>
+        const promises = [
+            "I promise to never let you cry alone.",
+            "I promise to support your dreams with everything I have.",
+            "I promise to always try not to fight with you(vaise it keeps the spark alive).",
+            "I promise to stay with you forever, no matter how hard life gets, no matter how bimar you get.",
+            "I promise to choose you, even during the bad times, especially during the bad times.",
+            "I promise to be your safe place where you can share everything without the fear of getting judged.",
+            "I promise to love you even on the days you don't love yourself.",
+            "I promise to never give up on us.."
+        ];
+
+        const canvas = document.getElementById('web-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('web-container');
+        const msgText = document.getElementById('message-text');
+        
+        let width, height, activeLines = [];
+        let count = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            container.querySelectorAll('.promise-node').forEach(n => n.remove());
+            initNodes();
+        }
+        window.addEventListener('resize', resize);
+
+        function initNodes() {
+            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+
+            promises.forEach((text, i) => {
+                const node = document.createElement('div');
+                node.className = 'promise-node';
+                node.innerHTML = "✦";
+                
+                const angle = (i / promises.length) * Math.PI * 2 - Math.PI/2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                node.style.transform = `translate(${x}px, ${y}px)`;
+
+                node.onclick = () => {
+                    if (node.dataset.connected) return;
+                    node.dataset.connected = "true";
+
+                    const nodeRect = node.getBoundingClientRect();
+                    const logoRect = document.getElementById('logo-anchor').getBoundingClientRect();
+
+                    const startX = nodeRect.left + nodeRect.width / 2;
+                    const startY = nodeRect.top + nodeRect.height / 2;
+                    const endX = logoRect.left + logoRect.width / 2;
+                    const endY = logoRect.top + logoRect.height / 2;
+
+                    activeLines.push({ sx: startX, sy: startY, ex: endX, ey: endY, p: 0 });
+                    gsap.to(activeLines[activeLines.length-1], { p: 1, duration: 0.6, ease: "power2.out" });
+
+                    msgText.style.opacity = 0;
+                    setTimeout(() => {
+                        msgText.innerText = text;
+                        msgText.style.opacity = 1;
+                    }, 200);
+
+                    node.style.background = "#1a237e";
+                    node.style.color = "#fff";
+                    node.style.borderColor = "#1a237e";
+
+                    count++;
+                    if (count === promises.length) {
+                        setTimeout(triggerFinal, 1500);
+                    }
+                };
+
+                container.appendChild(node);
+                gsap.to(node, { y: "+=10", duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            });
+        }
+
+        function triggerFinal() {
+            gsap.to("#main-content, #web-canvas", { 
+                opacity: 0, 
+                duration: 1, 
+                onComplete: () => {
+                    document.getElementById('main-content').style.display = 'none';
+                    const finalScreen = document.getElementById('final-screen');
+                    finalScreen.style.display = 'flex';
+                    gsap.to("#final-msg", { opacity: 1, y: -20, duration: 1.2, ease: "power2.out" });
+                } 
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = "#1a237e";
+            ctx.lineWidth = 1.5;
+            activeLines.forEach(l => {
+                ctx.beginPath();
+                ctx.moveTo(l.sx, l.sy);
+                ctx.lineTo(l.sx + (l.ex - l.sx) * l.p, l.sy + (l.ey - l.sy) * l.p);
+                ctx.stroke();
+            });
+            requestAnimationFrame(draw);
+        }
+
+        resize();
+        draw();
+    </script>
+</body>
+</html>
