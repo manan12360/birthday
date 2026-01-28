@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 11</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            /* Using a classic typewriter font */
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 30px;
+            line-height: 1.8;
+        }
+
+        .content-box {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        #text-target {
+            font-size: 16px;
+            white-space: pre-wrap; /* Crucial for keeping your line breaks */
+        }
+
+        /* The Blinking Cursor */
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background-color: #fff;
+            margin-left: 5px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .footer {
+            margin-top: 40px;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.3;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content-box">
+        <span id="text-target"></span><span class="cursor" id="cursor"></span>
+
+        <div class="footer" id="footer">
+            <a href="index.html">Return to Timeline</a>
+        </div>
+    </div>
+
+    <script>
+        // Your message here
+        const message = `DAY 8.
+
+I had other plans for today's gift, but I felt this is more important.
+
+We both hurt each other today, and I'm no one to blame. I couldn't make you feel safe, and you couldn't understand how i felt. 
+But we need to put aside the bad things cuz of we keep counting them, we will forget the good things. Idk what happened today and yes, im scared to do somethings now, but I dont ever want you to regret being with me. 
+
+Being physical is good, but not at the cost of trust and security in a relation. If something makes you cry, it is my problem. But when I make you cry, it feels like i am hurting the only thing I love. 
+
+I feel like amidst all the fights, we forgot something. We forgot who we truly were, we tried to force things that made matter worse, but most importantly, we somewhere stopped understanding each other to protect ourselves. Sometimes the best solutions to problems are the ones that seem the simplest. Maybe all we need is to understand what we both were and live the lovey dovey life we used to live.
+
+Cuz believe it or not, I want it to be you. I want you to be the one who holds my hand forever. And i want my kid to be named angad. 
+
+Please forgive me,
+Yours Spidey`;
+
+        const target = document.getElementById('text-target');
+        const footer = document.getElementById('footer');
+        let i = 0;
+
+        function typeWriter() {
+            if (i < message.length) {
+                target.textContent += message.charAt(i);
+                i++;
+                // Adjust numbers for speed: 40 is fast, 100 is slow
+                setTimeout(typeWriter, 50); 
+            } else {
+                // Show the return button once typing is finished
+                footer.style.opacity = "1";
+            }
+        }
+
+        // Starts the effect half a second after the page loads
+        window.onload = () => {
+            setTimeout(typeWriter, 500);
+        };
+    </script>
+</body>
+</html>
