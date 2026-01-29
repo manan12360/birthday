@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 11 - The Museum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #000;
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* --- Full Screen Background Tint --- */
+        .bg-layer {
+            position: absolute; inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) brightness(0.3); /* Tinted & Blurred for depth */
+            transition: opacity 1.2s ease;
+            opacity: 0;
+            z-index: 1;
+        }
+        .bg-active { opacity: 1; }
+
+        /* --- Intro Page --- */
+        #intro-page {
+            position: fixed; inset: 0;
+            background: #050a1a;
+            z-index: 2000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center;
+        }
+
+        /* --- Museum Layout --- */
+        .museum-container {
+            position: relative; width: 100%; height: 100%;
+            z-index: 10;
+        }
+
+        .exhibit {
+            position: absolute; inset: 0;
+            display: flex; justify-content: center; align-items: center;
+            padding: 20px;
+            opacity: 0; visibility: hidden;
+        }
+
+        /* --- The Card Content --- */
+        .relic-card {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        /* --- IMAGE SLOT --- */
+        .relic-image-container {
+            width: 100%;
+            height: 200px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .relic-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Adjust to 'contain' if you want to see full item */
+        }
+
+        .relic-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem; font-style: italic; margin-bottom: 10px; color: #fce4ec;
+        }
+
+        .relic-date {
+            font-size: 0.6rem; letter-spacing: 3px;
+            text-transform: uppercase; margin-bottom: 15px;
+            display: block; opacity: 0.6;
+        }
+
+        .relic-story {
+            font-size: 0.85rem; line-height: 1.6; color: #ddd; font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .next-btn {
+            padding: 12px 30px;
+            background: #fce4ec; color: #1a237e;
+            border: none; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 600;
+            letter-spacing: 2px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg0" class="bg-layer" style="background-image: url('photos/1.jpeg');"></div>
+    <div id="bg1" class="bg-layer" style="background-image: url('photos/2.jpeg');"></div>
+    <div id="bg2" class="bg-layer" style="background-image: url('photos/bracelet.png');"></div>
+    <div id="bg3" class="bg-layer" style="background-image: url('photos/4.jpeg');"></div>
+    <div id="bg4" class="bg-layer" style="background-image: url('car_bg.jpg');"></div>
+    <div id="bg5" class="bg-layer" style="background-image: url('photos/5.jpeg');"></div>
+    <div id="bg6" class="bg-layer" style="background-image: url('photos/6.jpeg');"></div>
+    <div id="bg7" class="bg-layer" style="background-image: url('letters_bg.jpg');"></div>
+
+    <div id="intro-page">
+        <h1 style="font-family: 'Playfair Display'; font-style: italic; font-size: 2.2rem; margin-bottom: 15px;">The Museum of Us</h1>
+        <p style="letter-spacing: 4px; font-size: 0.6rem; opacity: 0.5;">An archive of our special gifts</p>
+        <button class="next-btn" style="margin-top: 40px; background: none; color: #fff; border: 1px solid #fff;" onclick="startMuseum()">ENTER</button>
+    </div>
+
+    <div class="museum-container">
+        
+        <div class="exhibit" id="ex0">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/1.jpeg" alt="Relic 1"> </div>
+                <span class="relic-date">The Second Date</span>
+                <h2 class="relic-title">The Bracelets</h2>
+                <p class="relic-story">The very first thing we shared. We both wear these to this day, and it reminds me that i always have my baby beside me.</p>
+                <button class="next-btn" onclick="nextExhibit(1)">CONTINUE</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex1">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/2.jpeg" alt="Relic 2"> </div>
+                <span class="relic-date">My terrible gift</span>
+                <h2 class="relic-title">The "Unique" Stitch</h2>
+                <p class="relic-story">I tried. Scam hogya. But even then, you kept it with you, making sure that my feelings were'nt hurt. I love you.</p>
+                <button class="next-btn" onclick="nextExhibit(2)">NEXT</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex2">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/bracelet.png" alt="Relic 3"> </div>
+                <span class="relic-date">The Proposal</span>
+                <h2 class="relic-title">The Infinity Bracelet</h2>
+                <p class="relic-story">The moment I asked and you said yes. A promise of infinity that I intend to keep for the rest of my life. I promise to always be your spidey.</p>
+                <button class="next-btn" onclick="nextExhibit(3)">CONTINUE</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex3">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/4.jpeg" alt="Relic 4"> </div>
+                <span class="relic-date">First Flowers</span>
+                <h2 class="relic-title">OMGGGGGG</h2>
+                <p class="relic-story">I got flowers for the first time. And i cant lie they till are in my bag, cuz how can i throw them. I'll keep them with me for life.</p>
+                <button class="next-btn" onclick="nextExhibit(4)">NEXT</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex4">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="spidey_car.jpg" alt="Relic 5"> </div>
+                <span class="relic-date">Anxiety Relief</span>
+                <h2 class="relic-title">The Spidey Car</h2>
+                <p class="relic-story">I still play with this when I'm anxious. It's my little pocket of peace that you gave me.</p>
+                <button class="next-btn" onclick="nextExhibit(5)">CONTINUE</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex5">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/5.jpeg" alt="Relic 6"> </div>
+                <span class="relic-date">December 3rd</span>
+                <h2 class="relic-title">The Stolen Hoodie</h2>
+                <p class="relic-story">Meri hoodie chura li. But kya kare, hoodie pyaari hai but tu zyada pyaari hai, vaise bhi it looked better on you</p>
+                <button class="next-btn" onclick="nextExhibit(6)">NEXT</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex6">
+            <div class="relic-card">
+                <div class="relic-image-container">
+                    <img src="photos/6.jpeg" alt="Relic 7"> </div>
+                <span class="relic-date">Ye kaise engagement hai?</span>
+                <h2 class="relic-title">The Ring</h2>
+                <p class="relic-story">The ring you got me. It never leaves my finger. It’s a permanent reminder of your hand in mine.And the fact that it has my gwen on it.</p>
+                <button class="next-btn" onclick="nextExhibit(7)">FINISH</button>
+            </div>
+        </div>
+
+        <div class="exhibit" id="ex7">
+            <div class="relic-card">
+                <h2 class="relic-title">The Letters</h2>
+                <p class="relic-story">Between all these items are the dozens of letters we've written. They are the true foundation of this museum. I'll never forget a single word you wrote for me.</p>
+                <a href="index.html" class="next-btn" style="text-decoration: none;">BACK TO TIMELINE</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let current = -1;
+
+        function startMuseum() {
+            gsap.to("#intro-page", { opacity: 0, scale: 0.9, duration: 1, onComplete: () => {
+                document.getElementById('intro-page').style.display = 'none';
+                nextExhibit(0);
+            }});
+        }
+
+        function nextExhibit(index) {
+            const currentEx = document.getElementById(`ex${current}`);
+            const nextEx = document.getElementById(`ex${index}`);
+            const currentBg = document.getElementById(`bg${current}`);
+            const nextBg = document.getElementById(`bg${index}`);
+
+            const tl = gsap.timeline();
+
+            if (currentEx) {
+                tl.to(currentEx, { opacity: 0, y: -30, duration: 0.6, onComplete: () => currentEx.style.visibility = 'hidden' });
+                if(currentBg) currentBg.classList.remove('bg-active');
+            }
+
+            tl.set(nextEx, { visibility: 'visible', opacity: 0, y: 30 });
+            if(nextBg) nextBg.classList.add('bg-active');
+            
+            tl.to(nextEx, { opacity: 1, y: 0, duration: 1, ease: "power2.out" });
+
+            current = index;
+        }
+    </script>
+</body>
+</html>
