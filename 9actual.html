@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 9 - The Meridian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,600&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #050a1a; /* Signature Navy */
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .ambient-glow {
+            position: fixed; inset: 0;
+            background: 
+                radial-gradient(at 0% 0%, rgba(244, 143, 177, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(244, 143, 177, 0.15) 0px, transparent 50%);
+            filter: blur(80px);
+            z-index: 1;
+        }
+
+        #canvas { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+        .letter-container {
+            position: relative; z-index: 10;
+            width: 90%; max-width: 500px;
+            max-height: 85vh;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(244, 143, 177, 0.2);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0; transform: scale(0.95);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+        }
+
+        .card-header { padding: 40px 40px 10px; text-align: center; }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 40px 20px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+        .scroll-area::-webkit-scrollbar { display: none; }
+
+        .milestone-badge {
+            font-size: 0.6rem; letter-spacing: 7px;
+            color: #f48fb1;
+            text-transform: uppercase;
+            margin-bottom: 20px; display: block;
+            font-weight: 600;
+        }
+
+        .reveal-wrapper { overflow: hidden; margin-bottom: 18px; }
+        
+        .letter-content {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem; line-height: 2;
+            color: #ffffff; font-style: italic;
+            display: block;
+            transform: translateY(110%);
+        }
+
+        .highlight {
+            color: #f48fb1; font-weight: 600;
+            text-shadow: 0 0 15px rgba(244, 143, 177, 0.4);
+        }
+
+        .card-footer { padding: 10px 40px 40px; text-align: center; }
+
+        #nav-btn {
+            display: inline-block;
+            color: #f48fb1; text-decoration: none;
+            font-size: 0.65rem; letter-spacing: 5px;
+            text-transform: uppercase; 
+            border: 1px solid rgba(244, 143, 177, 0.4);
+            padding: 12px 30px; border-radius: 50px;
+            opacity: 0; transition: 0.5s;
+        }
+
+        #nav-btn:hover { background: #f48fb1; color: #050a1a; }
+
+        .heartbeat-line {
+            position: absolute; top: 50%; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #f48fb1, transparent);
+            opacity: 0.1; z-index: -1;
+            animation: beat 3s infinite linear;
+        }
+
+        @keyframes beat {
+            0% { transform: scaleX(0); opacity: 0; }
+            50% { opacity: 0.2; }
+            100% { transform: scaleX(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+    <div class="heartbeat-line"></div>
+    <canvas id="canvas"></canvas>
+
+    <div class="letter-container" id="letter">
+        <div class="card-header">
+            <span class="milestone-badge">Day 09 &bull; The Meridian</span>
+        </div>
+
+        <div class="scroll-area">
+            <div class="reveal-wrapper">
+                <div class="letter-content">Hey babe, <span class="highlight">Spidey</span> here.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">We’re halfway there already. It’s been 9 days since I started this as a way of making you realize that you do deserve all the love you can get.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">While today is no special gift, I want to talk to you, heart to heart. Ever since you came into my life, everything has been... well, <span class="highlight">colorful</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">I have found so many reasons to laugh and cry only because of you. You made me feel loved; you made me feel like a priority; you made me feel <span class="highlight">home</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">I never thought it would take such a small amount of time for us to build a connection people spend ages trying to make. We laughed, cried, joked, and did everything else.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">You came into my life and I started <span class="highlight">healing</span>. It’s been long enough for me to realize that I can’t live without you. Not because I need you, but because I realized you <span class="highlight">complete me</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">You bring the <span class="highlight">Chaddi</span> to my <span class="highlight">Chadha</span>; you bring the warmth to my heart; you bring the <span class="highlight">Gwen</span> to my <span class="highlight">Spidey</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">You deserve every single bit of love, and you are my best decision. I’ll never let go of your hand. And I promise: <span class="highlight">Seher and Angad</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">I love you the most, my princess, my <span class="highlight">baby seal</span>. Your Spidey will never give up on us.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">We still have another 10 days to go, but I just can’t thank you enough for staying with me when times get hard.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content">I promise your Spidey will do anything to ensure that my baby is the <span class="highlight">happiest girl in the world</span>.</div>
+            </div>
+
+            <div class="reveal-wrapper">
+                <div class="letter-content" style="font-size: 1.4rem; color: #f48fb1; padding-top: 20px;">Halfway to forever. ❤️</div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a href="index.html" id="nav-btn">Back to Timeline</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, petals = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Petal {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.r = Math.random() * 3 + 1;
+                this.v = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.5 ? '#f48fb1' : '#ffffff';
+                this.opacity = Math.random() * 0.4;
+            }
+            update(mx, my) {
+                this.y += this.v;
+                if (this.y > height) this.y = -20;
+                if(mx && my) {
+                    let dx = mx - this.x;
+                    let dy = my - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100) { this.x += dx * 0.05; this.y += dy * 0.05; }
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<60; i++) petals.push(new Petal());
+
+        function handleMove(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            petals.forEach(p => p.update(x, y));
+            const rotateX = (y - height/2) / 60;
+            const rotateY = (x - width/2) / -60;
+            gsap.to("#letter", { rotationX: rotateX, rotationY: rotateY, duration: 1 });
+        }
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove);
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            petals.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.onload = () => {
+            const tl = gsap.timeline();
+            tl.to("#letter", { opacity: 1, scale: 1, duration: 2, ease: "power4.out" })
+              .to(".letter-content", { translateY: "0%", duration: 1.2, stagger: 0.15, ease: "power3.out" }, "-=1.2")
+              .to("#nav-btn", { opacity: 1, duration: 1 }, "-=0.5");
+        };
+    </script>
+</body>
+</html>
