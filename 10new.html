@@ -46,60 +46,61 @@
         /* --- FINAL PROMISE OVERLAY --- */
         #final-overlay {
             position: fixed; inset: 0;
-            background: rgba(5, 10, 26, 0.96);
+            background: rgba(5, 10, 26, 0.98);
             backdrop-filter: blur(25px);
             z-index: 500;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            padding: 30px; text-align: center;
+            padding: 20px;
             opacity: 0; pointer-events: none;
-            transition: opacity 1.5s ease;
+            transition: opacity 1s ease;
         }
 
+        /* REBUILT SCROLL CONTAINER FOR MOBILE */
         .promise-scroll {
             width: 100%;
-            max-height: 75vh;
-            overflow-y: auto;
-            padding: 20px 10px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            max-height: 80vh;
+            overflow-y: scroll; /* Force scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth iOS scroll */
+            padding: 20px 15px;
             position: relative;
-            touch-action: pan-y; /* Allow scrolling */
+            touch-action: pan-y !important; /* Critical for mobile */
         }
         .promise-scroll::-webkit-scrollbar { display: none; }
 
         .promise-text {
             font-family: 'Playfair Display';
-            font-size: 1.15rem; line-height: 1.9;
+            font-size: 1.1rem; line-height: 1.8;
             color: #fff; font-style: italic;
-            padding-bottom: 40px;
+            padding-bottom: 60px;
+            pointer-events: none;
         }
 
         /* Scroll Reminder Animation */
         .scroll-reminder {
-            position: absolute;
-            bottom: 10px; left: 50%;
+            position: fixed;
+            bottom: 40px; left: 50%;
             transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center;
-            opacity: 0;
+            opacity: 0; pointer-events: none;
             transition: opacity 0.5s;
         }
 
         .mouse {
-            width: 20px; height: 35px;
+            width: 18px; height: 30px;
             border: 2px solid var(--pink); border-radius: 20px;
             position: relative;
         }
 
         .mouse::before {
-            content: ''; width: 4px; height: 8px;
+            content: ''; width: 3px; height: 6px;
             background: var(--pink); position: absolute;
-            left: 50%; top: 6px; transform: translateX(-50%);
+            left: 50%; top: 50%; transform: translate(-50%, -50%);
             border-radius: 2px;
             animation: scroll-wheel 1.5s infinite;
         }
 
-        @keyframes scroll-wheel { 0% { top: 6px; opacity: 1; } 100% { top: 20px; opacity: 0; } }
+        @keyframes scroll-wheel { 0% { top: 5px; opacity: 1; } 100% { top: 20px; opacity: 0; } }
 
         /* --- MAIN ARCHIVE --- */
         .bg-layer {
@@ -117,11 +118,11 @@
             height: 100vh; width: 100%;
             display: flex; flex-direction: column;
             align-items: center; justify-content: space-between;
-            padding: 30px 20px;
+            padding: 40px 20px 20px 20px; /* Adjusted padding */
         }
 
         .sharp-frame {
-            width: 270px; height: 350px;
+            width: 250px; height: 330px;
             background: #000; border: 1px solid rgba(255,255,255,0.15);
             box-shadow: 0 30px 60px rgba(0,0,0,0.9); border-radius: 2px;
             overflow: hidden; position: relative;
@@ -131,11 +132,12 @@
 
         .active { opacity: 1 !important; }
 
-        .content-area { text-align: center; width: 100%; max-width: 340px; margin-top: 10px; }
-        .caption-main { font-family: 'Playfair Display'; font-size: 1.3rem; color: var(--pink); font-style: italic; margin-bottom: 10px; }
-        .significance-text { font-size: 0.95rem; line-height: 1.6; opacity: 0.9; font-weight: 400; min-height: 60px; font-style: italic; padding: 0 10px; }
+        .content-area { text-align: center; width: 100%; max-width: 320px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        
+        .caption-main { font-family: 'Playfair Display'; font-size: 1.2rem; color: var(--pink); font-style: italic; margin-bottom: 8px; }
+        .significance-text { font-size: 0.9rem; line-height: 1.5; opacity: 0.9; font-weight: 400; font-style: italic; padding: 0 10px; }
 
-        .dial-wrap { width: 110px; height: 110px; }
+        .dial-wrap { width: 100px; height: 100px; margin-bottom: 10px; }
         .dial {
             width: 100%; height: 100%; border-radius: 50%;
             background: var(--glass); backdrop-filter: blur(15px);
@@ -143,31 +145,16 @@
             position: relative; cursor: grab;
             display: flex; justify-content: center; align-items: center;
         }
-        .dial-knob { position: absolute; top: 6px; width: 8px; height: 8px; background: var(--pink); border-radius: 50%; box-shadow: 0 0 10px var(--pink); }
+        .dial-knob { position: absolute; top: 5px; width: 7px; height: 7px; background: var(--pink); border-radius: 50%; box-shadow: 0 0 10px var(--pink); }
 
         #reveal-truth-btn {
-            margin-top: 15px; padding: 10px 30px; background: transparent; border: 1px solid var(--pink);
-            color: var(--pink); border-radius: 50px; font-size: 0.7rem; letter-spacing: 2px;
-            text-transform: uppercase; cursor: pointer; opacity: 0; transform: translateY(20px); transition: all 0.8s ease; pointer-events: auto;
+            margin: 15px auto; padding: 8px 25px; background: transparent; border: 1px solid var(--pink);
+            color: var(--pink); border-radius: 50px; font-size: 0.65rem; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; opacity: 0; transform: translateY(10px); transition: all 0.8s ease; display: block;
         }
 
-        .close-msg { margin-top: 40px; font-size: 0.55rem; letter-spacing: 3px; opacity: 0.3; text-transform: uppercase; padding-bottom: 20px; }
-        .nav-btn { 
-            color: rgba(255,255,255,0.4); 
-            text-decoration: none; 
-            font-size: 0.55rem; 
-            letter-spacing: 3px; 
-            text-transform: uppercase; 
-            margin-bottom: 5px; 
-            padding: 10px 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-        .nav-btn:hover {
-            color: var(--pink);
-            border-color: var(--pink);
-        }
+        .close-msg { margin-top: 40px; font-size: 0.55rem; letter-spacing: 3px; opacity: 0.4; text-transform: uppercase; padding-bottom: 20px; }
+        .nav-btn { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.55rem; letter-spacing: 3px; text-transform: uppercase; padding: 10px; }
     </style>
 </head>
 <body>
@@ -191,14 +178,13 @@
                 I should honestly sue Disney for copying my princess. <br><br>
                 Let the people laugh. But I promise you one thing , this time you wouldn't be alone. Jo bhi hasega, hum dono milke uska bhoot bana denge. I'll hold you hand no matter what. For I am always gonna defend the fact that god gave me the most beautiful girlfriend ever.
                 And honestly , there is no such thing as a bad photo for a boyfriend.<br><br>
-                <span style="font-size: 1.5rem; color: var(--pink);">I LOVE YOU MY BUBA, AND I'M PROUD OF YOU.</span>
+                <span style="font-size: 1.4rem; color: var(--pink);">I LOVE YOU MY BUBA, AND I'M PROUD OF YOU.</span>
                 <p class="close-msg" onclick="closeOverlay()">Tap here to return to archive</p>
             </div>
-            
-            <div class="scroll-reminder" id="reminder">
-                <div class="mouse"></div>
-                <p style="font-size: 0.5rem; color: var(--pink); margin-top: 10px; letter-spacing: 2px;">SCROLL DOWN</p>
-            </div>
+        </div>
+        <div class="scroll-reminder" id="reminder">
+            <div class="mouse"></div>
+            <p style="font-size: 0.5rem; color: var(--pink); margin-top: 10px; letter-spacing: 2px;">SCROLL DOWN</p>
         </div>
     </div>
 
@@ -212,10 +198,10 @@
 
     <div class="main-ui">
         <div class="header">
-            <p style="font-size: 0.55rem; letter-spacing: 5px; opacity: 0.5;">DAY 10 &bull; THE UNWANTED GALLERY</p>
+            <p style="font-size: 0.5rem; letter-spacing: 5px; opacity: 0.5;">DAY 10 &bull; THE UNWANTED GALLERY</p>
         </div>
 
-        <div class="sharp-frame" id="sharp-container">
+   <div class="sharp-frame" id="sharp-container">
             <img src="photos/p1.jpeg" class="active" data-cap="The Frst 'bad' photo." data-sig="Because this is exactly the smile I fell for.">
             <img src="photos/p2.jpeg" data-cap="Ms Irritated." data-sig="The first time i saw you irritated, and let me tell you , you look cuter when you are chidchidi.">
             <img src="photos/p3.jpeg" data-cap="AHAHAHAHAHA." data-sig="You think I forgot about this one? Mwahahhaahahah.">
@@ -240,7 +226,7 @@
         <div class="dial-wrap">
             <div class="dial" id="dial">
                 <div class="dial-knob"></div>
-                <p style="font-size: 0.4rem; letter-spacing: 2px; opacity: 0.3;">TUNE</p>
+                <p style="font-size: 0.4rem; letter-spacing: 2px; opacity: 0.2;">TUNE</p>
             </div>
         </div>
 
@@ -299,7 +285,7 @@
                 photosSeen.add(index);
 
                 if (photosSeen.size >= 7) {
-                    gsap.to(revealBtn, { opacity: 1, y: 0, duration: 1 });
+                    gsap.to(revealBtn, { opacity: 1, y: 0, duration: 1, pointerEvents: 'auto' });
                 }
                 
                 bgImages.forEach((img, i) => img.classList.toggle('active', i === index));
