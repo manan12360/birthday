@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Valentines</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/typeit@8.7.1/dist/index.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,700;1,900&family=Montserrat:wght@200;400;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --crimson: #5e0000; --rose: #ff4d6d; --ivory: #fffdfa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; touch-action: none; }
+        
+        body { background: var(--ivory); color: #1a1a1a; font-family: 'Montserrat', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
+        
+        .stage { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 30px; text-align: center; }
+
+        /* --- START SCREEN --- */
+        #stage1 { background: #080808; z-index: 1000; }
+        .heartbeat-core { width: 100px; height: 100px; background: var(--crimson); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-shadow: 0 0 50px var(--crimson); animation: pulse 1.5s infinite; }
+        .charge-ring { position: absolute; inset: -10px; border: 4px solid var(--rose); border-radius: 50%; clip-path: inset(100% 0 0 0); filter: drop-shadow(0 0 15px var(--rose)); }
+        @keyframes pulse { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } }
+
+        /* --- PHOTO ENGINE --- */
+        #photo-viewport { position: relative; width: 100%; height: 400px; display: flex; align-items: center; justify-content: center; perspective: 1000px; }
+        .photo-frame {
+            position: absolute; width: 200px; height: 250px; 
+            background: #fff; padding: 12px 12px 45px 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0; border-radius: 2px;
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; pointer-events: none;
+        }
+        .photo-img-container { width: 100%; height: 100%; overflow: hidden; border: 1px solid #f0f0f0; }
+        .photo-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-caption { margin-top: 12px; font-family: 'Playfair Display'; font-style: italic; font-size: 0.85rem; font-weight: 700; color: #333; }
+
+        /* --- ASKING BOX --- */
+        .ask-box { padding: 60px 40px; background: #fff; border: 1px solid #eee; box-shadow: 0 40px 80px rgba(0,0,0,0.08); border-radius: 4px; opacity: 0; transform: scale(0.9) translateY(40px); text-align: center; max-width: 450px; width: 90%; z-index: 200; }
+        .btn-main { padding: 16px 40px; background: var(--crimson); color: #fff; border: none; font-family: 'Montserrat'; font-weight: 800; letter-spacing: 4px; cursor: pointer; border-radius: 1px; text-transform: uppercase; font-size: 0.65rem; transition: 0.3s; }
+
+        /* --- FINAL BLOOM ELEMENTS --- */
+        #final-particle-layer { position: fixed; inset: 0; z-index: 500; pointer-events: none; }
+        .particle { position: absolute; background: var(--rose); border-radius: 50%; opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="final-particle-layer"></div>
+
+    <div id="stage1" class="stage" style="display: flex;">
+        <div class="heartbeat-core" id="heart-trigger">
+            <div class="charge-ring" id="charge-p"></div>
+            <div style="font-size: 0.5rem; color: #fff; font-weight: 900; letter-spacing: 2px;">HOLD</div>
+        </div>
+    </div>
+
+    <div id="stage2" class="stage">
+        <div id="typing-box" style="font-family: 'Playfair Display'; font-size: 1.6rem; font-style: italic; line-height: 1.8; max-width: 550px;"></div>
+        <button class="btn-main" id="letter-btn" style="opacity:0; margin-top: 50px;" onclick="nextStage(3)">Go ahead</button>
+    </div>
+
+    <div id="stage3" class="stage">
+        <div id="photo-viewport"></div>
+        <button id="vow-btn" class="btn-main" style="display: none; position: fixed; bottom: 80px; z-index: 500;" onclick="burstPhotos()">The final question</button>
+    </div>
+
+    <div id="stage4" class="stage">
+        <div class="ask-box" id="final-card">
+            <h1 style="font-family: 'Playfair Display'; font-size: 2.8rem; font-style: italic; margin-bottom: 25px;">Sukhman,</h1>
+            <p style="margin-bottom: 45px; font-weight: 400; line-height: 1.8;">Will you be my Valentine?</p>
+            <p style="margin-bottom: 45px; font-weight: 200; line-height: 1.8;">No bolke dikha , marunga</p>
+            <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
+                <button id="yes-btn" class="btn-main" onclick="finalBloom()" style="background: #000; z-index: 1000;">I will</button>
+                <button id="no-btn" class="btn-main" style="background: #f7f7f7; color: #bbb;">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const memories = [
+            "The First Date", "Blueee", "Puchiii,bohut saari", 
+            "Bandar", "My bubu", "Nachos were yum", 
+            "Ye kya hogya", "My softtoy", "Home", 
+            "The movie we didn't watch", "Ravioli", "My pillow", 
+            "Tang krti hai", "You looked good", "Lips", 
+            "Hahahah", "Monkey"
+        ];
+
+        let yesScale = 1;
+        const photoElements = [];
+
+        // --- HEARTBEAT LOGIC ---
+        const heart = document.getElementById('heart-trigger');
+        const charge = document.getElementById('charge-p');
+        let holdTimer;
+
+        heart.onmousedown = heart.ontouchstart = (e) => {
+            e.preventDefault();
+            gsap.to(charge, { clipPath: 'inset(0% 0 0 0)', duration: 2.5, ease: 'none' });
+            holdTimer = setTimeout(() => nextStage(2), 2500);
+        };
+        heart.onmouseup = heart.ontouchend = () => {
+            clearTimeout(holdTimer);
+            gsap.to(charge, { clipPath: 'inset(100% 0 0 0)', duration: 0.5 });
+        };
+
+        function nextStage(num) {
+            const current = document.querySelector('.stage[style*="display: flex"]');
+            const next = document.getElementById('stage' + num);
+            gsap.to(current, { opacity: 0, duration: 0.8, onComplete: () => {
+                current.style.display = 'none';
+                next.style.display = 'flex';
+                gsap.to(next, { opacity: 1, duration: 0.8 });
+                if(num === 2) startLetter();
+                if(num === 3) startMemories();
+            }});
+        }
+
+        function startLetter() {
+            new TypeIt("#typing-box", {
+                strings: ["Buba,", "You've been with me ever since we met.You never left my side.", "Through every situation , you were always standing right next to me."," Countless nights filled with doubt and hatred, you calmed me. I can never thank you enough.","This gift isn't over yet."],
+                speed: 50, afterComplete: () => { gsap.to("#letter-btn", { opacity: 1, duration: 1 }); }
+            }).go();
+        }
+
+        function startMemories() {
+            const viewport = document.getElementById('photo-viewport');
+            const tl = gsap.timeline();
+
+            memories.forEach((text, i) => {
+                const el = document.createElement('div');
+                el.className = 'photo-frame';
+                el.innerHTML = `
+                    <div class="photo-img-container">
+                        <img src="photos/v${i+1}.jpeg" alt="Memory ${i+1}">
+                    </div>
+                    <p class="photo-caption">${text}</p>`;
+                viewport.appendChild(el);
+                photoElements.push(el);
+
+                const entry = [
+                    {x:-window.innerWidth, y:0}, {x:window.innerWidth, y:0}, 
+                    {x:0, y:-window.innerHeight}, {x:0, y:window.innerHeight}
+                ][Math.floor(Math.random()*4)];
+
+                tl.fromTo(el, 
+                    { opacity: 0, x: entry.x, y: entry.y, rotation: 45, scale: 1.5 },
+                    { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1, duration: 1.2, ease: "power3.out" }, 
+                    i * 0.9
+                );
+
+                tl.to(el, { scale: 0.5, y: i * -2, x: i % 2 === 0 ? 5 : -5, rotation: (Math.random() * 6 - 3), duration: 0.8 }, "-=0.3");
+            });
+
+            tl.to("#vow-btn", { display: 'block', opacity: 1, duration: 1 });
+        }
+
+        function burstPhotos() {
+            gsap.to("#vow-btn", { opacity: 0, pointerEvents: 'none' });
+            photoElements.forEach((el, i) => {
+                const angle = (i / memories.length) * Math.PI * 2;
+                const isOut = Math.random() > 0.4;
+                const dist = isOut ? Math.max(window.innerWidth, window.innerHeight) : 280 + Math.random()*100;
+                gsap.to(el, { x: Math.cos(angle)*dist, y: Math.sin(angle)*dist, rotation: Math.random()*90, opacity: isOut ? 0 : 0.6, duration: 2, ease: "expo.out" });
+            });
+            document.getElementById('stage4').style.display = 'flex';
+            gsap.to("#final-card", { opacity: 1, scale: 1, y: 0, duration: 1, delay: 0.5 });
+        }
+
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        function runaway() {
+            const x = (Math.random() - 0.5) * (window.innerWidth - 200);
+            const y = (Math.random() - 0.5) * (window.innerHeight - 200);
+            gsap.to(noBtn, { x: x, y: y, duration: 0.3 });
+            yesScale += 0.3;
+            gsap.to(yesBtn, { scale: yesScale, backgroundColor: "#7e0000", duration: 0.3 });
+        }
+        noBtn.addEventListener('mouseover', runaway);
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); runaway(); });
+
+        function finalBloom() {
+            gsap.to(['#yes-btn', '#no-btn', '#final-card'], { opacity: 0, scale: 0.5, duration: 0.8 });
+            
+            photoElements.forEach((el, i) => {
+                gsap.to(el, { x: 0, y: 0, rotation: 0, scale: 0, opacity: 1, duration: 1, ease: "power2.in" });
+            });
+
+            const particleCount = 100;
+            const container = document.getElementById('final-particle-layer');
+            
+            for(let i=0; i<particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 6 + 2;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = (Math.random() * 100) + 'vw';
+                p.style.top = '110vh';
+                container.appendChild(p);
+
+                gsap.to(p, {
+                    opacity: Math.random() * 0.8 + 0.2,
+                    top: '-10vh',
+                    x: (Math.random() - 0.5) * 200,
+                    duration: Math.random() * 3 + 2,
+                    delay: Math.random() * 2,
+                    ease: "power1.out",
+                    onComplete: () => p.remove()
+                });
+            }
+
+            setTimeout(() => {
+                gsap.to('body', { backgroundColor: '#2b0000', duration: 3 });
+                const finalStage = document.createElement('div');
+                finalStage.className = 'stage';
+                finalStage.style.display = 'flex';
+                finalStage.innerHTML = `
+                    <h1 style="font-family: 'Playfair Display'; color: #fff; font-size: 2.5rem; font-style: italic;">I knew it.I love you</h1>
+                    <p style="color: #ff4d6d; margin-top: 20px; font-weight: 700; letter-spacing: 5px;">FOREVER, YOUR SPIDEY</p>
+                `;
+                document.body.appendChild(finalStage);
+                gsap.fromTo(finalStage, { opacity: 0 }, { opacity: 1, duration: 2 });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
