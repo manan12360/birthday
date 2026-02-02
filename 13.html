@@ -78,7 +78,6 @@
         const photoContainer = document.getElementById('photo-container');
         const finaleBackdrop = document.getElementById('finale-backdrop');
 
-        // Initial volume set to subtle (40%) - no fade in requested
         music.volume = 0.4;
 
         for(let i=1; i<=26; i++) {
@@ -95,6 +94,12 @@
         }
 
         function beginExperience() {
+            // MOBILE AUDIO UNLOCK: Play and Pause immediately on first click
+            music.play().then(() => {
+                music.pause();
+                music.currentTime = 3.0;
+            }).catch(e => console.log("Audio unlock failed:", e));
+
             const master = gsap.timeline();
 
             master.to("#start-screen", { opacity: 0, duration: 1.2 });
@@ -106,7 +111,7 @@
                     duration: 2, 
                     delay: 6,
                     onComplete: () => {
-                        // START MUSIC AT 3.0 SECONDS
+                        // START MUSIC AT 3.0s NOW THAT CHANNEL IS UNLOCKED
                         music.currentTime = 3.0;
                         music.play();
                     }
