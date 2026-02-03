@@ -14,14 +14,15 @@
 
         body {
             font-family: 'Quicksand', sans-serif;
-            /* Using a more vibrant gradient to make the glass effect stand out */
             background: linear-gradient(45deg, #ee9ca7 0%, #ffdde1 100%);
-            height: 100vh;
+            min-height: 100vh; /* Changed from height to min-height */
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            overflow-y: auto; /* Changed to allow scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for mobile */
             position: relative;
+            padding: 40px 0; /* Added padding so buttons don't touch screen edges */
         }
 
         /* Ambient animated blobs to enhance the glass effect */
@@ -115,6 +116,7 @@
             transition: 0.4s;
             display: inline-block;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            margin-bottom: 10px; /* Added slight margin for spacing */
         }
 
         .btn:hover {
@@ -172,28 +174,28 @@
         <a href="2.html" class="btn" id="dayBtn2">Day 2</a>
         <br>
         <a href="3.html" class="btn" id="dayBtn3">Day 3</a>
-         <a href="4new.html" class="btn" id="dayBtn4">Day 4</a>
-         <a href="5new.html" class="btn" id="dayBtn5">Day 5</a>
+        <a href="4new.html" class="btn" id="dayBtn4">Day 4</a>
+        <a href="5new.html" class="btn" id="dayBtn5">Day 5</a>
         
-         <a href="6new.html" class="btn" id="dayBtn6">Day 6</a>
+        <a href="6new.html" class="btn" id="dayBtn6">Day 6</a>
         
-         <a href="7new.html" class="btn" id="dayBtn7">Day 7</a>
+        <a href="7new.html" class="btn" id="dayBtn7">Day 7</a>
         
-         <a href="8actual.html" class="btn" id="dayBtn8">Day 8</a>
+        <a href="8actual.html" class="btn" id="dayBtn8">Day 8</a>
         
-         <a href="9actual.html" class="btn" id="dayBtn9">Day 9</a>
+        <a href="9actual.html" class="btn" id="dayBtn9">Day 9</a>
         
-         <a href="10new.html" class="btn" id="dayBtn10">Day 10</a>
+        <a href="10new.html" class="btn" id="dayBtn10">Day 10</a>
         
-         <a href="11.html" class="btn" id="dayBtn11">Day 11</a>
+        <a href="11.html" class="btn" id="dayBtn11">Day 11</a>
         
-         <a href="12.html" class="btn" id="dayBtn12">Day 12</a>
+        <a href="12.html" class="btn" id="dayBtn12">Day 12</a>
         
-         <a href="13.html" class="btn" id="dayBtn13">Day 13</a>
+        <a href="13.html" class="btn" id="dayBtn13">Day 13</a>
         
-         <a href="14.html" class="btn" id="dayBtn14">Day 14</a>
+        <a href="14.html" class="btn" id="dayBtn14">Day 14</a>
         
-         <a href="#" class="btn" id="dayBtn">Day 15</a>
+        <a href="#" class="btn" id="dayBtn">Day 15</a>
     
     </div>
 
@@ -238,32 +240,4 @@
         };
     </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
