@@ -18,6 +18,9 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: var(--paper); overflow: hidden;
             font-family: 'Crimson Pro', serif;
+            /* Helps mobile browsers prioritize animation */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
         }
 
         #stage { 
@@ -31,7 +34,7 @@
             opacity: 0.12; pointer-events: none; z-index: 200;
         }
 
-        canvas { position: absolute; top: 0; left: 0; z-index: 5; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 5; will-change: transform; }
 
         #envelope-container {
             position: absolute; bottom: -300px; left: 50%;
@@ -39,9 +42,10 @@
             width: 320px; height: 200px;
             background: var(--envelope-bg);
             z-index: 100;
-            transition: all 2s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: all 1.8s cubic-bezier(0.19, 1, 0.22, 1);
             opacity: 0;
             box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            will-change: transform, opacity;
         }
 
         #envelope-container.arrived {
@@ -54,7 +58,7 @@
             border-right: 160px solid transparent;
             border-top: 110px solid #dcd7bd;
             transform-origin: top;
-            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 110;
         }
 
@@ -69,12 +73,12 @@
             background: #fffdf9;
             padding: 30px; box-sizing: border-box;
             z-index: 95;
-            transition: all 1.8s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1);
             box-shadow: 0 0 10px rgba(0,0,0,0.05);
             text-align: center;
             display: flex; flex-direction: column; justify-content: center;
             opacity: 0;
-            overflow: hidden; /* No scroll */
+            overflow: hidden;
         }
 
         .opened #letter-sheet {
@@ -125,7 +129,7 @@
     function init() {
         width = window.innerWidth; height = window.innerHeight;
         canvas.width = width; canvas.height = height;
-        words = Array.from({length: 30}, () => ({
+        words = Array.from({length: 25}, () => ({ // Reduced word count slightly for mobile performance
             x: Math.random() * width, y: Math.random() * height,
             txt: gloomWords[Math.floor(Math.random()*gloomWords.length)],
             vx: (Math.random()-0.5) * 0.1, vy: Math.random() * 0.4 + 0.1,
@@ -165,17 +169,19 @@
     }
 
     function loop() {
-        ctx.fillStyle = hasHugged ? "rgba(244, 241, 234, 0.04)" : "rgba(244, 241, 234, 0.2)";
+        ctx.fillStyle = hasHugged ? "rgba(244, 241, 234, 0.05)" : "rgba(244, 241, 234, 0.25)";
         ctx.fillRect(0, 0, width, height);
 
-        let inc = (progress > 0.88) ? 0.0006 : 0.006;
+        // Slightly increased increments for a "snappier" feel on mobile
+        let inc = (progress > 0.88) ? 0.0009 : 0.008; 
         if (isTouching && progress < 1) progress += inc;
-        else if (!isTouching && !hasHugged) progress = Math.max(0, progress - 0.01);
+        else if (!isTouching && !hasHugged) progress = Math.max(0, progress - 0.015);
 
         if (hasHugged) {
             timer++;
-            if (timer === 60) env.classList.add('arrived');
-            if (timer === 180) env.classList.add('opened');
+            // Timers shortened slightly to speed up the sequence
+            if (timer === 50) env.classList.add('arrived');
+            if (timer === 150) env.classList.add('opened');
             let pulse = Math.sin(Date.now() * 0.0015) * 15;
             let g = ctx.createRadialGradient(width/2, height/2 - 20, 0, width/2, height/2 - 20, 200 + pulse);
             g.addColorStop(0, 'rgba(139, 0, 0, 0.04)');
@@ -193,7 +199,9 @@
             } else {
                 w.alpha *= 0.98;
                 ctx.vx *= 0.98; w.vy *= 0.98;
-                ctx.filter = `blur(${timer/40}px)`;
+                // Capped blur on mobile to prevent lag
+                let b = Math.min(timer/45, 4); 
+                ctx.filter = `blur(${b}px)`;
                 ctx.fillStyle = `rgba(30, 30, 30, ${w.alpha})`;
             }
             ctx.save(); ctx.translate(w.x, w.y); ctx.rotate(w.rot);
@@ -219,7 +227,7 @@
             words.forEach(w => {
                 let dx = w.x - width/2, dy = w.y - (height/2);
                 let d = Math.max(1, Math.sqrt(dx*dx + dy*dy));
-                w.vx = (dx/d) * 8; w.vy = (dy/d) * 8;
+                w.vx = (dx/d) * 10; w.vy = (dy/d) * 10;
             });
         }
         requestAnimationFrame(loop);
