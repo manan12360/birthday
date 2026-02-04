@@ -72,7 +72,7 @@
             background: rgba(0, 0, 0, 0.55); 
             backdrop-filter: blur(4px); 
             z-index: 1001;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
 
         #final-text {
@@ -195,6 +195,12 @@
         window.addEventListener('mousedown', onDown);
         window.addEventListener('mousemove', onMove);
         window.addEventListener('mouseup', () => { isDragging = false; });
+        
+        // --- ADDED TOUCH SUPPORT FOR PHONE ---
+        window.addEventListener('touchstart', (e) => onDown(e.touches[0]));
+        window.addEventListener('touchmove', (e) => onMove(e.touches[0]));
+        window.addEventListener('touchend', () => { isDragging = false; });
+        
         document.getElementById('explore-btn').onclick = transitionIntoWorld;
     }
 
