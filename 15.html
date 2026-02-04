@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Genesis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+        
+        #ui { 
+            position: absolute; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            pointer-events: none; z-index: 100; 
+        }
+
+        #bg-guide {
+            position: absolute; width: 100%; text-align: center;
+            top: 50%; transform: translateY(-50%);
+            font-family: 'Cinzel', serif; font-size: 2.8rem; 
+            color: rgba(255, 255, 255, 0.07);
+            letter-spacing: 15px; text-transform: uppercase; z-index: 1;
+            pointer-events: none;
+        }
+
+        #explore-btn {
+            padding: 20px 60px; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.6); 
+            color: #fff; font-family: 'Cinzel', serif; cursor: pointer; pointer-events: all;
+            opacity: 0; transform: scale(0.8); transition: all 1.5s ease; letter-spacing: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* NEW BACK BUTTON STYLING */
+        #back-btn {
+            position: absolute;
+            bottom: 50px;
+            padding: 12px 30px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.5);
+            color: rgba(255,255,255,0.8);
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            pointer-events: all;
+            opacity: 0; /* Hidden by default */
+            transition: all 0.5s ease;
+            letter-spacing: 3px;
+            backdrop-filter: blur(5px);
+            z-index: 1005;
+        }
+
+        #back-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border-color: #fff;
+        }
+
+        #supernova {
+            position: fixed; top: 50%; left: 50%; width: 10px; height: 10px;
+            background: radial-gradient(circle, #fff 0%, #fff6e0 30%, #ff4d00 70%, transparent 100%);
+            border-radius: 50%; transform: translate(-50%, -50%) scale(0);
+            z-index: 500; pointer-events: none; opacity: 0;
+        }
+
+        #video-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 1000; display: none; opacity: 0; 
+        }
+
+        #video-dull-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55); 
+            backdrop-filter: blur(4px); 
+            z-index: 1001;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        #final-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 2.1rem;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 3px;
+            z-index: 1002;
+            padding: 20px;
+            opacity: 0;
+            line-height: 1.5;
+            text-shadow: 0 0 15px rgba(255, 250, 240, 0.8), 0 0 30px rgba(255, 250, 240, 0.3);
+        }
+
+        .video-player { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; transition: opacity 0.2s ease-in; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="bg-guide">Bring the stars together</div>
+
+<div id="supernova"></div>
+<div id="ui">
+    <button id="explore-btn">EXPLORE WORLD</button>
+    <button id="back-btn" onclick="window.location.href='index.html'">BACK TO TIMELINE</button>
+</div>
+
+<div id="video-overlay">
+    <div id="video-dull-layer">
+        <h1 id="final-text">You are my world,<br>Buba</h1> 
+    </div>
+    <video id="player1" class="video-player" playsinline muted></video>
+    <video id="player2" class="video-player" playsinline muted style="opacity:0;"></video>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<script>
+    let scene, camera, renderer, starY, starB, earth, starsNear, starsFar;
+    let raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+    let isDragging = false, activeStar = null, exploded = false;
+
+    const glowVertex = `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+
+    const glowFragment = `
+        varying vec2 vUv;
+        uniform vec3 color;
+        void main() {
+            float dist = distance(vUv, vec2(0.5));
+            float alpha = smoothstep(0.5, 0.0, dist);
+            alpha = pow(alpha, 3.0); 
+            gl_FragColor = vec4(color, alpha);
+        }
+    `;
+
+    init();
+    animate();
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 5000);
+        camera.position.z = 800;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        starsNear = createStars(2000, 0xffffff, 2.0); 
+        starsFar = createStars(5000, 0xffffff, 0.8);  
+        scene.add(starsNear, starsFar);
+
+        const starGeo = new THREE.PlaneGeometry(160, 160);
+        starY = new THREE.Mesh(starGeo, new THREE.ShaderMaterial({
+            uniforms: { color: { value: new THREE.Color(0xFFE082) } },
+            vertexShader: glowVertex,
+            fragmentShader: glowFragment,
+            transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+        starB = new THREE.Mesh(starGeo, new THREE.ShaderMaterial({
+            uniforms: { color: { value: new THREE.Color(0x80DEEA) } },
+            vertexShader: glowVertex,
+            fragmentShader: glowFragment,
+            transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+
+        starY.position.set(-220, 0, 10);
+        starB.position.set(220, 0, -10);
+        scene.add(starY, starB);
+
+        const earthGeo = new THREE.SphereGeometry(130, 64, 64);
+        const texLoader = new THREE.TextureLoader();
+        const earthMat = new THREE.MeshPhongMaterial({
+            map: texLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'),
+            specularMap: texLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg'),
+            shininess: 30,
+            emissive: new THREE.Color(0x001133),
+            emissiveIntensity: 0.3
+        });
+        earth = new THREE.Mesh(earthGeo, earthMat);
+        earth.visible = false;
+        scene.add(earth);
+
+        const light = new THREE.DirectionalLight(0xffffff, 3);
+        light.position.set(5, 3, 5);
+        scene.add(light, new THREE.AmbientLight(0x222222));
+
+        window.addEventListener('mousedown', onDown);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        document.getElementById('explore-btn').onclick = transitionIntoWorld;
+    }
+
+    function createStars(count, color, size) {
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        for(let i=0; i<count*3; i++) pos[i] = (Math.random()-0.5) * 4000;
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        return new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent: true }));
+    }
+
+    function onDown(e) {
+        if(exploded) return;
+        mouse.x = (e.clientX/window.innerWidth)*2-1;
+        mouse.y = -(e.clientY/window.innerHeight)*2+1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects([starY, starB]);
+        if(intersects.length > 0) { isDragging = true; activeStar = intersects[0].object; }
+    }
+
+    function onMove(e) {
+        mouse.x = (e.clientX/window.innerWidth)*2-1;
+        mouse.y = -(e.clientY/window.innerHeight)*2+1;
+        gsap.to(starsNear.position, { x: mouse.x * 140, y: mouse.y * 140, duration: 2 });
+        gsap.to(starsFar.position, { x: mouse.x * 70, y: mouse.y * 70, duration: 3 });
+        gsap.to(document.getElementById('bg-guide'), { x: mouse.x * 30, y: mouse.y * 30, duration: 4 });
+
+        if(isDragging && activeStar && !exploded) {
+            const v = new THREE.Vector3(mouse.x, mouse.y, 0.5).unproject(camera);
+            const d = v.sub(camera.position).normalize();
+            const dist = -camera.position.z / d.z;
+            activeStar.position.copy(camera.position.clone().add(d.multiplyScalar(dist)));
+            if(starY.position.distanceTo(starB.position) < 50) cinematicBang();
+        }
+    }
+
+    function cinematicBang() {
+        exploded = true;
+        document.getElementById('bg-guide').style.opacity = '0';
+        gsap.to([starY.scale, starB.scale], { x: 0, y: 0, z: 0, duration: 0.6, ease: "power4.in" });
+        setTimeout(() => {
+            const s = document.getElementById('supernova');
+            s.style.opacity = "1";
+            gsap.to(s, { scale: 600, duration: 2.5, ease: "power3.in", onComplete: () => {
+                scene.remove(starY, starB);
+                earth.visible = true; earth.scale.set(0,0,0);
+                blast(starsNear, 15); blast(starsFar, 8);
+                gsap.to(earth.scale, { x: 1, y: 1, z: 1, duration: 3, ease: "expo.out" });
+                gsap.to(s, { opacity: 0, duration: 3 });
+                gsap.to('#explore-btn', { opacity: 1, scale: 1, duration: 1.5, delay: 1 });
+            }});
+        }, 500);
+    }
+
+    function blast(field, force) {
+        const p = field.geometry.attributes.position.array;
+        for(let i=0; i<p.length; i+=3) {
+            gsap.to(p, { [i]: p[i] * force, [i+1]: p[i+1] * force, [i+2]: p[i+2] * force, duration: 5, ease: "expo.out" });
+        }
+    }
+
+    function transitionIntoWorld() {
+        gsap.to('#explore-btn', { opacity: 0, duration: 1 });
+        gsap.to(camera.position, { z: 135, duration: 4, ease: "power4.in" });
+        
+        setTimeout(() => {
+            const overlay = document.getElementById('video-overlay');
+            overlay.style.display = 'flex';
+            gsap.to(overlay, { opacity: 1, duration: 2 });
+            
+            startMemoryStream();
+
+            const textElement = document.getElementById('final-text');
+            const backBtn = document.getElementById('back-btn');
+
+            gsap.to(textElement, { opacity: 1, duration: 2, ease: "power2.out" });
+            gsap.to(textElement, { 
+                textShadow: "0 0 25px rgba(255, 250, 240, 1), 0 0 50px rgba(255, 250, 240, 0.6)", 
+                duration: 2, 
+                repeat: -1, 
+                yoyo: true, 
+                ease: "sine.inOut" 
+            });
+
+            // NEW: Fades in the back button 3 seconds after the text starts
+            gsap.to(backBtn, { 
+                opacity: 1, 
+                duration: 1.5, 
+                delay: 3, 
+                ease: "power1.inOut" 
+            });
+
+        }, 3600);
+    }
+
+    function startMemoryStream() {
+        let current = 1;
+        const totalVideos = 14;
+        const p1 = document.getElementById('player1');
+        const p2 = document.getElementById('player2');
+        let players = [p1, p2];
+        let activeIndex = 0;
+
+        const getPath = (num) => `photos/o${num}.mp4`;
+
+        players[activeIndex].src = getPath(current);
+        players[activeIndex].play();
+
+        setInterval(() => {
+            let nextNum = (current % totalVideos) + 1;
+            let idleIndex = activeIndex; 
+            activeIndex = 1 - activeIndex; 
+
+            players[activeIndex].src = getPath(nextNum);
+            players[activeIndex].load();
+
+            setTimeout(() => {
+                players[activeIndex].play();
+                players[activeIndex].style.opacity = 1;
+                players[idleIndex].style.opacity = 0;
+                
+                current = nextNum;
+            }, 1400); 
+
+        }, 1500);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        starsNear.geometry.attributes.position.needsUpdate = true;
+        starsFar.geometry.attributes.position.needsUpdate = true;
+        if(earth.visible) earth.rotation.y += 0.003;
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>
