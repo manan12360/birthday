@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 16 - Our Timeline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; touch-action: none; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+
+        /* FIXED INTRO SEQUENCE */
+        #intro-sequence {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 200; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .text-container {
+            position: relative;
+            width: 100%;
+            height: 120px; /* Fixed height to prevent jumping */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .intro-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            line-height: 1.8;
+            position: absolute;
+            opacity: 0;
+            width: 90%;
+            transition: opacity 1.5s ease;
+        }
+
+        #continue-btn {
+            margin-top: 60px; /* Healthy gap to prevent overlap */
+            padding: 12px 35px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: transparent;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 1s ease;
+            pointer-events: none;
+            z-index: 201;
+            border-radius: 2px;
+        }
+
+        /* MAIN UI LAYER */
+        #ui-layer {
+            position: relative; z-index: 10; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; pointer-events: none; padding-top: 40px;
+            padding-bottom: 220px; visibility: hidden; opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        #header { text-align: center; }
+        .title { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 4px; opacity: 0.5; margin-bottom: 5px; }
+        .counter-display { font-family: 'Playfair Display', serif; font-size: 2.5rem; text-shadow: 0 0 30px rgba(255,255,255,0.2); }
+
+        #center-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; text-align: center; }
+        #echo-msg { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: #fff; opacity: 0; text-shadow: 0 0 20px rgba(255,255,255,0.8); margin-bottom: 10px; }
+        #hold-prompt { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4); }
+
+        #controls-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; pointer-events: all; width: 100%; }
+        #controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; background: rgba(255, 255, 255, 0.04); padding: 18px; border-radius: 35px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-family: 'Cinzel', serif; padding: 10px 14px; font-size: 0.6rem; letter-spacing: 2px; border-radius: 20px; }
+        .btn.active { background: #fff; color: #000; border-color: #fff; transform: scale(1.05); }
+
+        #back-btn { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 2px; color: rgba(255,255,255,0.2); background: none; border: none; padding: 15px; }
+    </style>
+</head>
+<body>
+
+<div id="intro-sequence">
+    <div class="text-container">
+        <div class="intro-text" id="t1">Baby,<br>We've been together for almost 7 months</div>
+        <div class="intro-text" id="t2">It might not feel like a lot of time</div>
+        <div class="intro-text" id="t3">But we've made so many memories,<br>time feels like just a number</div>
+        <div class="intro-text" id="t4">See how long we've spent with each other.</div>
+    </div>
+    <button id="continue-btn">CONTINUE</button>
+</div>
+
+<div id="ui-layer">
+    <div id="header">
+        <div class="title" id="mode-label">OUR SHARED DAYS</div>
+        <div class="counter-display" id="main-counter">0</div>
+    </div>
+
+    <div id="center-container">
+        <div id="echo-msg">Hold the screen...</div>
+        <div id="hold-prompt">HOLD TO FEEL THE TIME</div>
+    </div>
+
+    <div id="controls-wrapper">
+        <div id="controls">
+            <button class="btn active" onclick="setMode('days', this)">Days</button>
+            <button class="btn" onclick="setMode('hours', this)">Hours</button>
+            <button class="btn" onclick="setMode('minutes', this)">Minutes</button>
+            <button class="btn" onclick="setMode('seconds', this)">Seconds</button>
+        </div>
+        <button id="back-btn" onclick="window.location.href='index.html'">BACK TO TIMELINE</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<script>
+    const startDate = new Date('2025-07-15T00:00:00');
+    let scene, camera, renderer, starSystem, originalPositions, textTargets;
+    let currentMode = 'days', isHolding = false;
+    let animations = [];
+    
+    // INTRO LOGIC
+    window.onload = () => {
+        const sequence = [
+            { id: "t1", duration: 4000 },
+            { id: "t2", duration: 3500 },
+            { id: "t3", duration: 5000 },
+            { id: "t4", duration: 4000 }
+        ];
+
+        let delay = 1000;
+        sequence.forEach((item, index) => {
+            setTimeout(() => {
+                const el = document.getElementById(item.id);
+                el.style.opacity = 1;
+                // Fade out unless it's the last one
+                setTimeout(() => {
+                    if(index < sequence.length - 1) el.style.opacity = 0;
+                }, item.duration - 1000);
+            }, delay);
+            delay += item.duration;
+        });
+
+        // Show button after last text is fully settled
+        setTimeout(() => {
+            const btn = document.getElementById('continue-btn');
+            btn.style.opacity = 1;
+            btn.style.pointerEvents = 'all';
+        }, delay - 800);
+    };
+
+    document.getElementById('continue-btn').onclick = function() {
+        gsap.to("#intro-sequence", { opacity: 0, duration: 2, onComplete: () => {
+            document.getElementById('intro-sequence').style.display = 'none';
+            document.getElementById('ui-layer').style.visibility = 'visible';
+            gsap.to("#ui-layer", { opacity: 1, duration: 2 });
+            initThree();
+            updateNumbers();
+            setInterval(updateNumbers, 1000);
+        }});
+    };
+
+    // CORE LOGIC (Same high-end centered text typography)
+    const messages = {
+        days: ["Always yours.", "A gallery of sunrises we faced.", "24 hours wasn't enough.", "Every sunrise is a gift."],
+        hours: ["Forever and a day.", "Every hour felt like a dream.", "The quiet weight of our late nights."],
+        minutes: ["Till the end of time.", "Small breaths that built our world.", "Counting every minute."],
+        seconds: ["Your Spidey, always.", "The heartbeat of our forever.", "One second was all it took."]
+    };
+
+    const wordTargets = {
+        days: ["ALWAYS"],
+        hours: ["FOREVER"],
+        minutes: ["TILL THE", "END"],
+        seconds: ["YOUR", "SPIDEY"]
+    };
+
+    let msgIndices = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+    function initThree() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+        camera.position.z = 900;
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        createStarField();
+        animate();
+
+        window.addEventListener('touchstart', (e) => { e.preventDefault(); startGravity(); }, {passive: false});
+        window.addEventListener('touchend', (e) => { e.preventDefault(); triggerBoom(); }, {passive: false});
+        window.addEventListener('mousedown', startGravity);
+        window.addEventListener('mouseup', triggerBoom);
+    }
+
+    function createStarField() {
+        if (starSystem) scene.remove(starSystem);
+        let count = currentMode === 'days' ? 1500 : (currentMode === 'hours' ? 3000 : (currentMode === 'minutes' ? 5000 : 8000));
+        
+        const geo = new THREE.BufferGeometry();
+        originalPositions = new Float32Array(count * 3);
+        textTargets = new Float32Array(count * 3);
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800; canvas.height = 800;
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 100px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const lines = wordTargets[currentMode];
+        const lineHeight = 120;
+        const totalHeight = (lines.length - 1) * lineHeight;
+        const startY = 400 - (totalHeight / 2);
+
+        lines.forEach((line, index) => {
+            ctx.fillText(line, 400, startY + (index * lineHeight));
+        });
+        
+        const imgData = ctx.getImageData(0, 0, 800, 800).data;
+        const points = [];
+        for (let y = 0; y < 800; y += 4) {
+            for (let x = 0; x < 800; x += 4) {
+                if (imgData[(y * 800 + x) * 4] > 128) {
+                    points.push({x: (x - 400) * 1.8, y: (400 - y) * 1.8});
+                }
+            }
+        }
+
+        for(let i=0; i < count * 3; i += 3) {
+            originalPositions[i] = (Math.random() - 0.5) * 2200;
+            originalPositions[i+1] = (Math.random() - 0.5) * 2200;
+            originalPositions[i+2] = (Math.random() - 0.5) * 2200;
+            const target = points[Math.floor(Math.random() * points.length)] || {x:0, y:0};
+            textTargets[i] = target.x;
+            textTargets[i+1] = target.y;
+            textTargets[i+2] = (Math.random() - 0.5) * 15;
+        }
+
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(originalPositions), 3));
+        starSystem = new THREE.Points(geo, new THREE.PointsMaterial({
+            color: currentMode === 'days' ? 0xFFD700 : (currentMode === 'hours' ? 0xFFA07A : 0xffffff),
+            size: 2, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+        }));
+        scene.add(starSystem);
+    }
+
+    function startGravity() {
+        isHolding = true;
+        animations.forEach(a => a.kill());
+        animations = [];
+        const pos = starSystem.geometry.attributes.position.array;
+        for (let i = 0; i < pos.length; i += 3) {
+            animations.push(gsap.to(pos, { 
+                [i]: textTargets[i], [i+1]: textTargets[i+1], [i+2]: textTargets[i+2], 
+                duration: 2.2, ease: "power2.inOut" 
+            }));
+        }
+        gsap.to("#echo-msg", { opacity: 1, duration: 0.8 });
+    }
+
+    function triggerBoom() {
+        if (!isHolding) return;
+        isHolding = false;
+        animations.forEach(a => a.kill());
+        const pos = starSystem.geometry.attributes.position.array;
+        const echoMsg = document.getElementById('echo-msg');
+        const currentList = messages[currentMode];
+        echoMsg.innerText = currentList[msgIndices[currentMode]];
+        msgIndices[currentMode] = (msgIndices[currentMode] + 1) % currentList.length;
+
+        for (let i = 0; i < pos.length; i += 3) {
+            gsap.to(pos, { 
+                [i]: originalPositions[i], [i+1]: originalPositions[i+1], [i+2]: originalPositions[i+2], 
+                duration: 1.2, ease: "expo.out" 
+            });
+        }
+        gsap.to("#echo-msg", { opacity: 0, duration: 1, delay: 2.5 });
+    }
+
+    function setMode(mode, el) {
+        if (currentMode === mode) return;
+        currentMode = mode;
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('mode-label').innerText = `OUR SHARED ${mode.toUpperCase()}`;
+        createStarField();
+    }
+
+    function updateNumbers() {
+        const diff = new Date() - startDate;
+        let count = Math.floor(diff / (currentMode === 'days' ? 86400000 : currentMode === 'hours' ? 3600000 : currentMode === 'minutes' ? 60000 : 1000));
+        document.getElementById('main-counter').innerText = count.toLocaleString();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (starSystem) {
+            if (!isHolding) {
+                starSystem.rotation.y += 0.0006;
+            } else {
+                const pos = starSystem.geometry.attributes.position.array;
+                for (let i = 0; i < pos.length; i++) {
+                    pos[i] += (Math.random() - 0.5) * 1.8;
+                }
+            }
+            starSystem.geometry.attributes.position.needsUpdate = true;
+        }
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>
