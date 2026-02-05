@@ -9,7 +9,7 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; touch-action: none; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
 
-        /* FIXED INTRO SEQUENCE */
+        /* INTRO SEQUENCE */
         #intro-sequence {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 200; display: flex; flex-direction: column;
@@ -17,66 +17,57 @@
             padding: 20px; box-sizing: border-box;
         }
 
-        .text-container {
-            position: relative;
-            width: 100%;
-            height: 120px; /* Fixed height to prevent jumping */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .intro-text {
-            font-family: 'Cinzel', serif;
-            font-size: 1.1rem;
-            letter-spacing: 3px;
-            line-height: 1.8;
-            position: absolute;
-            opacity: 0;
-            width: 90%;
-            transition: opacity 1.5s ease;
-        }
+        .text-container { position: relative; width: 100%; height: 120px; display: flex; justify-content: center; align-items: center; }
+        .intro-text { font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 3px; line-height: 1.8; position: absolute; opacity: 0; width: 90%; transition: opacity 1.5s ease; }
 
         #continue-btn {
-            margin-top: 60px; /* Healthy gap to prevent overlap */
-            padding: 12px 35px;
-            border: 1px solid rgba(255,255,255,0.4);
-            background: transparent;
-            color: #fff;
-            font-family: 'Cinzel', serif;
-            letter-spacing: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 1s ease;
-            pointer-events: none;
-            z-index: 201;
-            border-radius: 2px;
+            margin-top: 60px; padding: 12px 35px; border: 1px solid rgba(255,255,255,0.4);
+            background: transparent; color: #fff; font-family: 'Cinzel', serif;
+            letter-spacing: 4px; font-size: 0.8rem; cursor: pointer; opacity: 0;
+            transition: all 1s ease; pointer-events: none; z-index: 205; border-radius: 2px;
         }
 
-        /* MAIN UI LAYER */
+        /* MAIN UI LAYER - FIXED FOR MOBILE TOUCH */
         #ui-layer {
-            position: relative; z-index: 10; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: space-between;
-            align-items: center; pointer-events: none; padding-top: 40px;
-            padding-bottom: 220px; visibility: hidden; opacity: 0;
-            transition: opacity 2s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; display: flex; flex-direction: column; 
+            justify-content: space-between; align-items: center; 
+            pointer-events: none; padding-top: 40px; padding-bottom: 240px; 
+            visibility: hidden; opacity: 0; transition: opacity 2s ease;
         }
 
-        #header { text-align: center; }
+        #header { text-align: center; pointer-events: none; }
         .title { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 4px; opacity: 0.5; margin-bottom: 5px; }
         .counter-display { font-family: 'Playfair Display', serif; font-size: 2.5rem; text-shadow: 0 0 30px rgba(255,255,255,0.2); }
 
-        #center-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; text-align: center; }
+        #center-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; text-align: center; pointer-events: none; }
         #echo-msg { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: #fff; opacity: 0; text-shadow: 0 0 20px rgba(255,255,255,0.8); margin-bottom: 10px; }
         #hold-prompt { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4); }
 
-        #controls-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; pointer-events: all; width: 100%; }
-        #controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; background: rgba(255, 255, 255, 0.04); padding: 18px; border-radius: 35px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-family: 'Cinzel', serif; padding: 10px 14px; font-size: 0.6rem; letter-spacing: 2px; border-radius: 20px; }
+        #controls-wrapper { 
+            position: absolute; bottom: 80px; /* Moved up from bottom edge */
+            display: flex; flex-direction: column; align-items: center; 
+            gap: 20px; pointer-events: auto; width: 100%; z-index: 100;
+        }
+        
+        #controls { 
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 8px; background: rgba(255, 255, 255, 0.08); 
+            padding: 15px; border-radius: 40px; backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            pointer-events: auto;
+        }
+
+        .btn { 
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: #fff; font-family: 'Cinzel', serif; padding: 12px 16px; font-size: 0.65rem; 
+            letter-spacing: 2px; border-radius: 20px; cursor: pointer; pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .btn.active { background: #fff; color: #000; border-color: #fff; transform: scale(1.05); }
 
-        #back-btn { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 2px; color: rgba(255,255,255,0.2); background: none; border: none; padding: 15px; }
+        #back-btn { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 2px; color: rgba(255,255,255,0.4); background: none; border: none; padding: 10px; pointer-events: auto; }
     </style>
 </head>
 <body>
@@ -104,10 +95,10 @@
 
     <div id="controls-wrapper">
         <div id="controls">
-            <button class="btn active" onclick="setMode('days', this)">Days</button>
-            <button class="btn" onclick="setMode('hours', this)">Hours</button>
-            <button class="btn" onclick="setMode('minutes', this)">Minutes</button>
-            <button class="btn" onclick="setMode('seconds', this)">Seconds</button>
+            <button class="btn active" id="btn-days" onclick="setMode('days', this)">Days</button>
+            <button class="btn" id="btn-hours" onclick="setMode('hours', this)">Hours</button>
+            <button class="btn" id="btn-minutes" onclick="setMode('minutes', this)">Minutes</button>
+            <button class="btn" id="btn-seconds" onclick="setMode('seconds', this)">Seconds</button>
         </div>
         <button id="back-btn" onclick="window.location.href='index.html'">BACK TO TIMELINE</button>
     </div>
@@ -135,40 +126,38 @@
         sequence.forEach((item, index) => {
             setTimeout(() => {
                 const el = document.getElementById(item.id);
-                el.style.opacity = 1;
-                // Fade out unless it's the last one
+                if(el) el.style.opacity = 1;
                 setTimeout(() => {
-                    if(index < sequence.length - 1) el.style.opacity = 0;
+                    if(index < sequence.length - 1 && el) el.style.opacity = 0;
                 }, item.duration - 1000);
             }, delay);
             delay += item.duration;
         });
 
-        // Show button after last text is fully settled
         setTimeout(() => {
             const btn = document.getElementById('continue-btn');
-            btn.style.opacity = 1;
-            btn.style.pointerEvents = 'all';
+            if(btn) { btn.style.opacity = 1; btn.style.pointerEvents = 'all'; }
         }, delay - 800);
     };
 
-    document.getElementById('continue-btn').onclick = function() {
-        gsap.to("#intro-sequence", { opacity: 0, duration: 2, onComplete: () => {
+    document.getElementById('continue-btn').onclick = function(e) {
+        e.stopPropagation();
+        gsap.to("#intro-sequence", { opacity: 0, duration: 1.5, onComplete: () => {
             document.getElementById('intro-sequence').style.display = 'none';
-            document.getElementById('ui-layer').style.visibility = 'visible';
-            gsap.to("#ui-layer", { opacity: 1, duration: 2 });
+            const ui = document.getElementById('ui-layer');
+            ui.style.visibility = 'visible';
+            gsap.to(ui, { opacity: 1, duration: 2 });
             initThree();
             updateNumbers();
             setInterval(updateNumbers, 1000);
         }});
     };
 
-    // CORE LOGIC (Same high-end centered text typography)
     const messages = {
-        days: ["Always yours.", "A gallery of sunrises we faced.", "24 hours wasn't enough.", "Every sunrise is a gift."],
-        hours: ["Forever and a day.", "Every hour felt like a dream.", "The quiet weight of our late nights."],
-        minutes: ["Till the end of time.", "Small breaths that built our world.", "Counting every minute."],
-        seconds: ["Your Spidey, always.", "The heartbeat of our forever.", "One second was all it took."]
+        days: ["Always yours.", "A gallery of sunrises we faced.", "24 hours wasn't enough."],
+        hours: ["Forever and a day.", "Every hour felt like a dream.", "The quiet weight of our nights."],
+        minutes: ["Till the end of time.", "Small breaths that built our world."],
+        seconds: ["Your Spidey, always.", "The heartbeat of our forever."]
     };
 
     const wordTargets = {
@@ -184,22 +173,32 @@
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
         camera.position.z = 900;
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
         createStarField();
         animate();
 
-        window.addEventListener('touchstart', (e) => { e.preventDefault(); startGravity(); }, {passive: false});
-        window.addEventListener('touchend', (e) => { e.preventDefault(); triggerBoom(); }, {passive: false});
-        window.addEventListener('mousedown', startGravity);
-        window.addEventListener('mouseup', triggerBoom);
+        // Separate touch logic for the stars to prevent interfering with buttons
+        window.addEventListener('touchstart', (e) => { 
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault(); 
+                startGravity(); 
+            }
+        }, {passive: false});
+        
+        window.addEventListener('touchend', (e) => { 
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault(); 
+                triggerBoom(); 
+            }
+        }, {passive: false});
     }
 
     function createStarField() {
         if (starSystem) scene.remove(starSystem);
         let count = currentMode === 'days' ? 1500 : (currentMode === 'hours' ? 3000 : (currentMode === 'minutes' ? 5000 : 8000));
-        
         const geo = new THREE.BufferGeometry();
         originalPositions = new Float32Array(count * 3);
         textTargets = new Float32Array(count * 3);
@@ -214,20 +213,14 @@
         
         const lines = wordTargets[currentMode];
         const lineHeight = 120;
-        const totalHeight = (lines.length - 1) * lineHeight;
-        const startY = 400 - (totalHeight / 2);
-
-        lines.forEach((line, index) => {
-            ctx.fillText(line, 400, startY + (index * lineHeight));
-        });
+        const startY = 400 - (((lines.length - 1) * lineHeight) / 2);
+        lines.forEach((line, index) => ctx.fillText(line, 400, startY + (index * lineHeight)));
         
         const imgData = ctx.getImageData(0, 0, 800, 800).data;
         const points = [];
-        for (let y = 0; y < 800; y += 4) {
-            for (let x = 0; x < 800; x += 4) {
-                if (imgData[(y * 800 + x) * 4] > 128) {
-                    points.push({x: (x - 400) * 1.8, y: (400 - y) * 1.8});
-                }
+        for (let y = 0; y < 800; y += 5) {
+            for (let x = 0; x < 800; x += 5) {
+                if (imgData[(y * 800 + x) * 4] > 128) points.push({x: (x - 400) * 1.8, y: (400 - y) * 1.8});
             }
         }
 
@@ -247,6 +240,15 @@
             size: 2, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
         }));
         scene.add(starSystem);
+    }
+
+    function setMode(mode, el) {
+        if (currentMode === mode || isHolding) return;
+        currentMode = mode;
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('mode-label').innerText = `OUR SHARED ${mode.toUpperCase()}`;
+        createStarField();
     }
 
     function startGravity() {
@@ -282,15 +284,6 @@
         gsap.to("#echo-msg", { opacity: 0, duration: 1, delay: 2.5 });
     }
 
-    function setMode(mode, el) {
-        if (currentMode === mode) return;
-        currentMode = mode;
-        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('mode-label').innerText = `OUR SHARED ${mode.toUpperCase()}`;
-        createStarField();
-    }
-
     function updateNumbers() {
         const diff = new Date() - startDate;
         let count = Math.floor(diff / (currentMode === 'days' ? 86400000 : currentMode === 'hours' ? 3600000 : currentMode === 'minutes' ? 60000 : 1000));
@@ -304,9 +297,7 @@
                 starSystem.rotation.y += 0.0006;
             } else {
                 const pos = starSystem.geometry.attributes.position.array;
-                for (let i = 0; i < pos.length; i++) {
-                    pos[i] += (Math.random() - 0.5) * 1.8;
-                }
+                for (let i = 0; i < pos.length; i++) pos[i] += (Math.random() - 0.5) * 1.8;
             }
             starSystem.geometry.attributes.position.needsUpdate = true;
         }
