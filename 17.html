@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 17 - Imperial Kinetic Burst</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,900&family=Montserrat:wght@400;800&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --maroon: #5e0000; --ivory: #fffdfa; --gold: #c5a059; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background: var(--ivory); height: 100vh; width: 100vw; overflow: hidden; font-family: 'Montserrat', sans-serif; }
+
+        .star { position: absolute; font-size: 1.2rem; pointer-events: none; color: var(--maroon); z-index: 5; opacity: 0.6; }
+
+        #seal-wrap {
+            position: absolute; top: 50%; left: 50%; width: 100px; height: 100px;
+            transform: translate(-50%, -50%); z-index: 50;
+        }
+        #seal {
+            width: 100%; height: 100%; background: var(--maroon); border-radius: 50%;
+            cursor: grab; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 40px rgba(94, 0, 0, 0.3); border: 2.5px solid #fff;
+            transition: box-shadow 0.5s;
+        }
+        #seal span { color: #fff; font-family: 'Cinzel Decorative'; font-size: 1.1rem; pointer-events: none; }
+
+        #ui-layer {
+            position: fixed; inset: 0; z-index: 500; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255, 253, 250, 0.9); opacity: 0;
+        }
+        .card {
+            background: white; border: 2.2px solid var(--maroon); padding: 50px 30px;
+            text-align: center; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        input {
+            background: transparent; border: none; border-bottom: 2px solid var(--maroon);
+            color: var(--maroon); padding: 10px; font-family: 'Playfair Display'; font-size: 1.5rem;
+            text-align: center; width: 100%; outline: none; margin-top: 30px;
+        }
+
+        #ticket-layer {
+            position: fixed; inset: 0; z-index: 1000; display: none;
+            align-items: center; justify-content: center;
+        }
+        .ticket {
+            background: white; border: 2px solid var(--maroon); padding: 60px 25px;
+            text-align: center; width: 320px; box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+        }
+        #hint { position: fixed; bottom: 40px; width: 100%; text-align: center; font-size: 0.6rem; letter-spacing: 5px; color: var(--maroon); opacity: 0.5; z-index: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="hint">COLLECT THE STARS TO OPEN THE ARCHIVE</div>
+    <div id="seal-wrap"><div id="seal"><span>XVII</span></div></div>
+
+    <div id="ui-layer">
+        <div class="card">
+            <p style="font-family: 'Playfair Display'; font-size: 1.3rem; font-style: italic;">"Which movie did we watch for the first time?"</p>
+            <input type="text" id="answer" autocomplete="off" placeholder="...">
+        </div>
+    </div>
+
+    <div id="ticket-layer">
+        <div class="ticket">
+            <h2 style="font-family: 'Cinzel Decorative'; font-size: 0.7rem; color: var(--gold); letter-spacing: 4px;">A SMALL GIFT</h2>
+            <h1 style="font-family: 'Playfair Display'; font-size: 1.6rem; margin: 25px 0;">"Get out of a fight when I'm angry"</h1>
+            <p style="font-size: 0.5rem; opacity: 0.6; letter-spacing: 3px; font-weight: 800;">SINGLE RECONCILIATION PASS</p>
+        </div>
+    </div>
+
+    <script>
+        gsap.registerPlugin(Draggable);
+
+        const stars = [];
+        let collected = 0;
+        const total = 25;
+
+        // Populate initial stars
+        for(let i=0; i<total; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.innerHTML = '✦';
+            gsap.set(s, { 
+                x: Math.random() * (window.innerWidth - 60) + 30, 
+                y: Math.random() * (window.innerHeight - 60) + 30 
+            });
+            document.body.appendChild(s);
+            stars.push(s);
+        }
+
+        Draggable.create("#seal", {
+            type: "x,y",
+            onDrag: function() {
+                stars.forEach(s => {
+                    if(s.dataset.hit !== "true" && this.hitTest(s, "50%")) {
+                        s.dataset.hit = "true";
+                        collected++;
+                        gsap.to(s, { scale: 0, opacity: 0, duration: 0.3 });
+                        if(collected === total) revealPhase();
+                    }
+                });
+            }
+        });
+
+        function revealPhase() {
+            gsap.to("#hint", { opacity: 0 });
+            gsap.to("#seal", { 
+                x: 0, y: 0, 
+                duration: 1, 
+                ease: "power3.inOut",
+                onComplete: () => {
+                    document.getElementById('seal').style.boxShadow = "0 0 50px var(--maroon)";
+                    const ui = document.getElementById('ui-layer');
+                    ui.style.display = 'flex';
+                    gsap.to(ui, { opacity: 1, duration: 0.6 });
+                    document.getElementById('answer').focus();
+                }
+            });
+        }
+
+        document.getElementById('answer').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter' && e.target.value.toLowerCase().includes('conjuring')) {
+                finalKineticBurst();
+            }
+        });
+
+        function finalKineticBurst() {
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            
+            // 1. Hide UI
+            gsap.to("#ui-layer", { opacity: 0, display: 'none', duration: 0.2 });
+            gsap.to("#seal-wrap", { scale: 0, duration: 0.3, ease: "power2.in" });
+
+            // 2. Create and Burst 500 Stars
+            for(let i=0; i<500; i++) {
+                const s = document.createElement('div');
+                s.className = 'star';
+                s.innerHTML = '✦';
+                s.style.zIndex = "2000";
+                
+                // Set initial position to center
+                gsap.set(s, { x: cx, y: cy, scale: 0.5, opacity: 1 });
+                document.body.appendChild(s);
+
+                // Immediate outward explosion
+                gsap.to(s, {
+                    x: cx + (Math.random() - 0.5) * window.innerWidth * 2.5,
+                    y: cy + (Math.random() - 0.5) * window.innerHeight * 2.5,
+                    scale: Math.random() * 1.5 + 0.5,
+                    duration: 2 + Math.random(),
+                    ease: "expo.out",
+                    opacity: 0.2,
+                    rotation: Math.random() * 360,
+                    delay: i * 0.001 // Slight stagger for texture
+                });
+            }
+
+            // 3. Reveal Ticket
+            if(navigator.vibrate) navigator.vibrate([100, 50, 200]);
+            document.getElementById('ticket-layer').style.display = 'flex';
+            gsap.from(".ticket", { scale: 0, rotation: 15, duration: 1, ease: "back.out(1.5)", delay: 0.2 });
+        }
+    </script>
+</body>
+</html>
