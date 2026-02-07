@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 18 - The Imperial Forge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital,wght@0,400;1,700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --maroon: #0d0000; --gold: #c5a059; --fire: #ff4d00; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background: var(--maroon); height: 100vh; overflow: hidden; font-family: 'Montserrat', sans-serif; }
+
+        /* CINEMATIC INTRO */
+        #intro-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 5000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .ember {
+            position: absolute; width: 3px; height: 3px;
+            background: var(--gold); border-radius: 50%;
+            box-shadow: 0 0 8px var(--fire); opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-text {
+            font-family: 'Cinzel Decorative'; font-size: 3rem; color: var(--gold);
+            letter-spacing: 15px; opacity: 0; z-index: 10;
+            text-shadow: 0 0 20px rgba(197, 160, 89, 0.6);
+            transform: scale(0.9);
+        }
+
+        /* REALISTIC SHORT TORCH */
+        #torch-tool {
+            position: fixed; left: 40px; bottom: 50px;
+            width: 35px; height: 110px; z-index: 2000; cursor: grab;
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; 
+        }
+
+        #iron-tip {
+            width: 45px; height: 30px; background: #1a1a1a;
+            border: 2.5px solid #222; border-bottom: 4px solid #000;
+            position: relative; z-index: 10; border-radius: 2px;
+        }
+
+        #wooden-handle {
+            width: 22px; height: 80px;
+            background: linear-gradient(90deg, #1e130c, #3d2b1f, #1e130c);
+            border-radius: 0 0 4px 4px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            border-top: 2px solid #000;
+        }
+
+        /* PROCEDURAL FIRE */
+        #flame {
+            position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
+            width: 28px; height: 55px;
+            background: linear-gradient(to top, #ff0000, #ff8c00, #ffff00, transparent);
+            filter: blur(6px); border-radius: 50% 50% 20% 20%;
+            opacity: 0; mix-blend-mode: screen;
+        }
+
+        #torch-glow {
+            position: fixed; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255, 100, 0, 0.22) 0%, transparent 75%);
+            pointer-events: none; z-index: 100; transform: translate(-50%, -50%);
+            opacity: 0; mix-blend-mode: color-dodge;
+        }
+
+        /* THE LETTER SCROLL - PADDING REDUCED TO REMOVE EMPTY SPACE */
+        #scroll-stage {
+            position: relative; width: 100%; height: 100vh; 
+            overflow-y: scroll; padding: 100px 40px 600px; z-index: 10;
+            scrollbar-width: none; -ms-overflow-style: none;
+            opacity: 0;
+        }
+        #scroll-stage::-webkit-scrollbar { display: none; }
+
+        .word {
+            display: inline-block; font-family: 'Playfair Display';
+            font-size: 1.6rem; color: var(--gold);
+            margin: 0 5px 12px; opacity: 0;
+            filter: blur(25px); transition: opacity 0.4s, filter 0.6s, transform 0.4s;
+        }
+        .word.revealed { opacity: 1; filter: blur(0px); transform: scale(1.05); }
+
+        #hint {
+            position: fixed; bottom: 40px; width: 100%; text-align: center;
+            font-family: 'Cinzel Decorative'; font-size: 0.55rem; letter-spacing: 5px;
+            color: var(--gold); opacity: 0; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-overlay">
+        <div id="intro-text">XVIII</div>
+    </div>
+
+    <div id="torch-glow"></div>
+
+    <div id="torch-tool">
+        <div id="iron-tip"><div id="flame"></div></div>
+        <div id="wooden-handle"></div>
+    </div>
+
+    <div id="hint">HOLD AND DRAG THE TORCH</div>
+
+    <div id="scroll-stage">
+        <div id="scroll-body" style="max-width:550px; margin:auto; text-align:center;"></div>
+    </div>
+
+    <script>
+        gsap.registerPlugin(Draggable);
+
+        const letterText = "Hi babe, we are in the last few days of these gifts, and I wanted to write this for you before we complete these. This isn’t just a letter to tell you how much I love you, but to thank you for being in my life. Ever since you came into my life, it has been the best I could have ever imagined. Yes, we cried at times, but you always stayed next to me. Through everything, we didn’t break; we stayed by each other. Thank you for being you, Sukhman. Thank you for being the best girlfriend in the world. I love you. Yours, Spidey.";
+
+        const body = document.getElementById('scroll-body');
+        letterText.split(" ").forEach(w => {
+            const span = document.createElement('span');
+            span.className = 'word';
+            span.innerText = w;
+            body.appendChild(span);
+        });
+
+        const words = document.querySelectorAll('.word');
+        const flame = document.getElementById('flame');
+        const glow = document.getElementById('torch-glow');
+        const overlay = document.getElementById('intro-overlay');
+        const introText = document.getElementById('intro-text');
+
+        // 1. IMPROVED FORGE ANIMATION (SLOWED DOWN)
+        window.onload = () => {
+            const emberCount = 80;
+            const textRect = introText.getBoundingClientRect();
+
+            for(let i=0; i<emberCount; i++) {
+                const e = document.createElement('div');
+                e.className = 'ember';
+                overlay.appendChild(e);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 400 + Math.random() * 200;
+                gsap.set(e, {
+                    x: Math.cos(angle) * dist,
+                    y: Math.sin(angle) * dist,
+                    scale: Math.random() * 2 + 1
+                });
+
+                const tx = (Math.random() - 0.5) * textRect.width;
+                const ty = (Math.random() - 0.5) * textRect.height;
+
+                gsap.to(e, {
+                    x: tx,
+                    y: ty,
+                    opacity: 1,
+                    duration: 3 + Math.random() * 2,
+                    ease: "power2.out",
+                    delay: Math.random() * 1.5
+                });
+
+                gsap.to(e, {
+                    opacity: 0,
+                    scale: 0,
+                    duration: 1.5,
+                    delay: 5 + Math.random() * 1
+                });
+            }
+
+            const tl = gsap.timeline();
+            tl.to(introText, { 
+                opacity: 1, 
+                scale: 1, 
+                filter: "blur(0px)", 
+                duration: 3, 
+                ease: "power2.inOut" 
+            }, 3.5);
+
+            tl.to("#intro-overlay", { opacity: 0, duration: 2, display: "none", delay: 1.5 });
+            tl.to("#torch-tool", { opacity: 1, duration: 1 }, "-=0.5");
+            tl.to("#scroll-stage", { opacity: 1, duration: 1 }, "-=1");
+            tl.to("#hint", { opacity: 0.5, duration: 1 });
+        };
+
+        // 2. PROCEDURAL FLAME ENGINE
+        function flicker() {
+            if(flame.style.opacity > 0) {
+                const h = 50 + Math.random() * 25;
+                const br = 0.7 + Math.random() * 0.5;
+                gsap.to(flame, { height: h, opacity: br, duration: 0.1 });
+                gsap.to(glow, { scale: 0.9 + Math.random() * 0.2, opacity: br, duration: 0.1 });
+            }
+            requestAnimationFrame(flicker);
+        }
+        flicker();
+
+        // 3. DRAG LOGIC
+        Draggable.create("#torch-tool", {
+            type: "x,y",
+            onDragStart: function() {
+                flame.style.opacity = "1";
+                glow.style.opacity = "1";
+                gsap.to("#hint", { opacity: 0, duration: 0.5 });
+            },
+            onDrag: function() {
+                const r = this.target.getBoundingClientRect();
+                const tx = r.left + r.width / 2;
+                const ty = r.top; 
+
+                gsap.set(glow, { left: tx, top: ty });
+
+                words.forEach(word => {
+                    const wr = word.getBoundingClientRect();
+                    const dist = Math.sqrt(Math.pow(tx - (wr.left + wr.width/2), 2) + Math.pow(ty - (wr.top + wr.height/2), 2));
+                    if (dist < 140) word.classList.add('revealed');
+                    else word.classList.remove('revealed');
+                });
+            }
+        });
+
+        // 4. SCROLL HANDLING
+        let startY = 0;
+        window.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+        window.addEventListener('touchmove', e => {
+            const delta = (startY - e.touches[0].clientY) * 1.5;
+            const stage = document.getElementById('scroll-stage');
+            stage.scrollTop += delta;
+            startY = e.touches[0].clientY;
+        });
+    </script>
+</body>
+</html>
