@@ -9,8 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital,wght@0,400;1,700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root { --maroon: #0d0000; --gold: #c5a059; --fire: #ff4d00; }
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-        body { background: var(--maroon); height: 100vh; overflow: hidden; font-family: 'Montserrat', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Disable pull-to-refresh and general body scrolling */
+        body { 
+            background: var(--maroon); 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: 'Montserrat', sans-serif; 
+            overscroll-behavior: none;
+        }
 
         /* CINEMATIC INTRO */
         #intro-overlay {
@@ -38,6 +46,8 @@
             width: 35px; height: 110px; z-index: 2000; cursor: grab;
             display: flex; flex-direction: column; align-items: center;
             opacity: 0; 
+            /* Essential fix: prevent torch from triggering scroll */
+            touch-action: none; 
         }
 
         #iron-tip {
@@ -70,12 +80,14 @@
             opacity: 0; mix-blend-mode: color-dodge;
         }
 
-        /* THE LETTER SCROLL - PADDING REDUCED TO REMOVE EMPTY SPACE */
+        /* THE LETTER SCROLL */
         #scroll-stage {
             position: relative; width: 100%; height: 100vh; 
             overflow-y: scroll; padding: 100px 40px 600px; z-index: 10;
             scrollbar-width: none; -ms-overflow-style: none;
             opacity: 0;
+            /* Allow scrolling only on the text area */
+            touch-action: pan-y;
         }
         #scroll-stage::-webkit-scrollbar { display: none; }
 
@@ -131,8 +143,8 @@
         const glow = document.getElementById('torch-glow');
         const overlay = document.getElementById('intro-overlay');
         const introText = document.getElementById('intro-text');
+        const stage = document.getElementById('scroll-stage');
 
-        // 1. IMPROVED FORGE ANIMATION (SLOWED DOWN)
         window.onload = () => {
             const emberCount = 80;
             const textRect = introText.getBoundingClientRect();
@@ -185,7 +197,6 @@
             tl.to("#hint", { opacity: 0.5, duration: 1 });
         };
 
-        // 2. PROCEDURAL FLAME ENGINE
         function flicker() {
             if(flame.style.opacity > 0) {
                 const h = 50 + Math.random() * 25;
@@ -197,7 +208,7 @@
         }
         flicker();
 
-        // 3. DRAG LOGIC
+        // Fix: Separation of Scroll and Drag
         Draggable.create("#torch-tool", {
             type: "x,y",
             onDragStart: function() {
@@ -221,15 +232,26 @@
             }
         });
 
-        // 4. SCROLL HANDLING
+        // Fix: Only scroll when NOT touching the torch
         let startY = 0;
-        window.addEventListener('touchstart', e => startY = e.touches[0].clientY);
-        window.addEventListener('touchmove', e => {
+        window.addEventListener('touchstart', (e) => {
+            // Check if the touch is on the torch or handle
+            if (!e.target.closest('#torch-tool')) {
+                startY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            // If dragging torch, stop the scroll immediately
+            if (e.target.closest('#torch-tool')) {
+                e.preventDefault();
+                return;
+            }
+
             const delta = (startY - e.touches[0].clientY) * 1.5;
-            const stage = document.getElementById('scroll-stage');
             stage.scrollTop += delta;
             startY = e.touches[0].clientY;
-        });
+        }, { passive: false });
     </script>
 </body>
 </html>
