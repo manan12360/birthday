@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 19 - The END?</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,500&family=Montserrat:wght@100;300&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --off-white: #f7f4f0; --royal-gold: #c5a059; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Montserrat', sans-serif; }
+
+        #grain-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            pointer-events: none; opacity: 0.05;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Static_Noise_Texture.png');
+        }
+
+        .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; }
+        #video-stage { opacity: 1; visibility: visible; z-index: 10; }
+        #letter-stage { z-index: 150; background: #000; }
+
+        #mainVideo { 
+            height: 100vh; width: 100vw; 
+            object-fit: cover;
+            filter: brightness(0.2) blur(25px) grayscale(0.8);
+            transform: scale(1.1);
+            transition: filter 2.5s ease, transform 3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #message-overlay {
+            position: fixed; inset: 0; z-index: 50;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px; text-align: center; opacity: 0;
+            pointer-events: none; 
+        }
+        #inner-message {
+            max-width: 400px;
+            font-family: 'Cormorant Garamond', serif;
+            color: #fff; font-size: 1.7rem; line-height: 1.3;
+            font-style: italic;
+        }
+
+        .letter-box {
+            text-align: center;
+            padding: 40px;
+            max-width: 650px;
+            width: 90%;
+            z-index: 160;
+        }
+        .letter-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6rem; color: white; line-height: 1.8;
+            opacity: 0; transform: translateY(20px);
+        }
+
+        .timeline-btn {
+            position: relative;
+            z-index: 170; 
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid var(--royal-gold);
+            color: var(--royal-gold);
+            font-family: 'Cormorant Garamond', serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 50px;
+            opacity: 0;
+            transition: all 0.5s ease;
+            text-decoration: none;
+            pointer-events: auto;
+        }
+        .timeline-btn:hover {
+            background: var(--royal-gold);
+            color: #000;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.4);
+        }
+
+        #shred-container { position: fixed; inset: 0; z-index: 100; display: flex; cursor: pointer; }
+        .shred { flex: 1; height: 100%; background: var(--off-white); border-right: 0.5px solid rgba(0,0,0,0.02); }
+
+        #ui-overlay {
+            position: fixed; inset: 0; z-index: 110;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        h1 { font-family: 'Cormorant Garamond', serif; font-size: 5rem; color: #2a2a2a; font-style: italic; font-weight: 300; }
+        .sub { font-family: 'Montserrat', sans-serif; color: #888; letter-spacing: 12px; font-size: 0.55rem; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" src="final.mp3" loop></audio>
+    <div id="grain-overlay"></div>
+
+    <div id="video-stage">
+        <video id="mainVideo" playsinline preload="auto">
+            <source src="blah.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div id="message-overlay">
+        <div id="inner-message">
+            Before we reach the finale... <br><br>
+            A moment for the girl who makes every second better.
+            A small depiction of your importance in my life.<br><br>
+            Please dont laugh as I drew it all by my hand...<br>
+            I Love You.
+        </div>
+    </div>
+
+    <div id="letter-stage" class="stage">
+        <div class="letter-box">
+            <div class="letter-text" id="finalLetter">
+                Thank you for being the way you are Sukhman. <br>
+                Thank you for making my life better. <br>
+                Thank you for loving me when I couldn't love myself. <br>
+                Thank you for caring for me when I was acting dumb. <br>
+                Thank you for staying by my side. <br>
+                Thank you for accepting me as I am. <br>
+                Thank you for everything. <br><br>
+                I will always love you the most. <br>
+                I will always be your spidey. <br><br>
+                I Love You
+            </div>
+            <a href="index.html" class="timeline-btn" id="tlBtn">Return to the timeline, one last time</a>
+        </div>
+    </div>
+
+    <div id="shred-container">
+        <div class="shred"></div><div class="shred"></div><div class="shred"></div><div class="shred"></div>
+        <div class="shred"></div><div class="shred"></div><div class="shred"></div><div class="shred"></div>
+        <div class="shred"></div><div class="shred"></div><div class="shred"></div><div class="shred"></div>
+        <div class="shred"></div><div class="shred"></div><div class="shred"></div><div class="shred"></div>
+    </div>
+
+    <div id="ui-overlay">
+        <h1>19</h1>
+        <div class="sub">The Finale</div>
+    </div>
+
+    <script>
+        const container = document.getElementById('shred-container');
+        const video = document.getElementById('mainVideo');
+        const shreds = document.querySelectorAll('.shred');
+        const message = document.getElementById('message-overlay');
+        const music = document.getElementById('bgMusic');
+
+        // VIDEO SPEED: Set to 0.5 (Half speed)
+        video.playbackRate = 0.5;
+
+        container.addEventListener('click', () => {
+            music.currentTime = 10;
+            music.play().catch(e => console.log("Audio play blocked"));
+            
+            const tl = gsap.timeline();
+            tl.to("#ui-overlay", { opacity: 0, duration: 0.6 });
+            tl.to(shreds, {
+                yPercent: (i) => i % 2 === 0 ? -105 : 105,
+                duration: 2,
+                stagger: 0.03,
+                ease: "expo.inOut"
+            }, "-=0.4");
+            
+            tl.to(message, { opacity: 1, duration: 1.5 }, "-=1.5");
+
+            // INTRO MESSAGE TIME: 6 seconds
+            tl.to({}, { duration: 6 }); 
+
+            tl.to(message, { 
+                opacity: 0, 
+                duration: 1.5,
+                onStart: () => {
+                    video.play();
+                    video.style.filter = "brightness(1) blur(0px) grayscale(0)";
+                    video.style.transform = "scale(1)";
+                },
+                onComplete: () => {
+                    container.style.display = "none";
+                    document.getElementById('ui-overlay').style.display = "none";
+                }
+            });
+            tl.set(container, { pointerEvents: "none" }); 
+        });
+
+        video.onended = () => {
+            gsap.to("#video-stage", { opacity: 0, duration: 2, onComplete: showLetter });
+        };
+
+        function showLetter() {
+            const stage = document.getElementById('letter-stage');
+            stage.style.visibility = 'visible';
+            
+            const tl = gsap.timeline();
+            tl.to(stage, { opacity: 1, duration: 2 });
+            tl.to("#finalLetter", { opacity: 1, y: 0, duration: 2.5, ease: "power2.out" });
+            tl.to("#tlBtn", { 
+                opacity: 1, 
+                duration: 1.5,
+                onStart: () => {
+                    document.getElementById('tlBtn').style.pointerEvents = "auto";
+                }
+            }, "+=1");
+        }
+    </script>
+</body>
+</html>
