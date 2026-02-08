@@ -17,9 +17,18 @@
             background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Static_Noise_Texture.png');
         }
 
+        /* Stages */
         .stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; }
         #video-stage { opacity: 1; visibility: visible; z-index: 10; }
-        #letter-stage { z-index: 150; background: #000; }
+        
+        /* Fixed Letter Stage for Scrolling */
+        #letter-stage { 
+            z-index: 150; 
+            background: #000; 
+            display: block; /* Changed from flex to block to prevent top-cutoff */
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
 
         #mainVideo { 
             height: 100vh; width: 100vw; 
@@ -42,11 +51,13 @@
             font-style: italic;
         }
 
+        /* Letter Container Adjustments */
         .letter-box {
             text-align: center;
-            padding: 40px;
+            padding: 100px 20px; /* Large vertical padding so it doesn't hit edges */
             max-width: 650px;
             width: 90%;
+            margin: 0 auto; /* Horizontal centering */
             z-index: 160;
         }
         .letter-text {
@@ -152,7 +163,6 @@
         const message = document.getElementById('message-overlay');
         const music = document.getElementById('bgMusic');
 
-        // VIDEO SPEED: Set to 0.5 (Half speed)
         video.playbackRate = 0.5;
 
         container.addEventListener('click', () => {
@@ -170,7 +180,6 @@
             
             tl.to(message, { opacity: 1, duration: 1.5 }, "-=1.5");
 
-            // INTRO MESSAGE TIME: 6 seconds
             tl.to({}, { duration: 6 }); 
 
             tl.to(message, { 
