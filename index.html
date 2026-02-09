@@ -11,7 +11,6 @@
             --gold: #c5a059; 
             --glass: rgba(10, 10, 10, 0.7); 
             --royal-purple: #1a0a2e;
-            --deep-space: #050505;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -22,8 +21,18 @@
             animation: gradientBG 15s ease infinite;
             color: #fff; 
             font-family: 'Quicksand', sans-serif; 
-            overflow: hidden; 
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* VIGNETTE EFFECT */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
+            pointer-events: none;
+            z-index: 100;
         }
 
         @keyframes gradientBG {
@@ -43,13 +52,12 @@
             border: 1px solid rgba(197, 160, 89, 0.2); 
             border-radius: 40px; 
             z-index: 10;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(197, 160, 89, 0.05);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
-        #timer-init { font-family: 'Cinzel', serif; font-size: 4rem; margin: 20px 0; color: var(--gold); text-shadow: 0 0 20px rgba(197, 160, 89, 0.3); }
-        .btn-dummy { padding: 10px 18px; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 50px; color: var(--gold); font-size: 0.65rem; letter-spacing: 1px; }
+        #timer-init { font-family: 'Cinzel', serif; font-size: 4rem; margin: 20px 0; color: var(--gold); }
+        .btn-dummy { padding: 10px 18px; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 50px; color: var(--gold); font-size: 0.65rem; opacity: 0.6; }
 
         /* PHASE 2: PHOTO SCENE */
-        #stage-main { background: transparent; }
         #viewport { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 5; }
         .photo-frame { position: absolute; width: 220px; height: 280px; opacity: 0; pointer-events: none; }
         .photo-frame img { width: 100%; height: 100%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
@@ -57,7 +65,6 @@
         #sequence-text { 
             position: absolute; top: 15%; font-family: 'Cinzel', serif; font-size: 2rem; 
             color: var(--gold); opacity: 0; z-index: 20; letter-spacing: 8px;
-            text-shadow: 0 0 15px rgba(197, 160, 89, 0.5);
         }
 
         /* ENVELOPE & MODAL */
@@ -66,7 +73,6 @@
             width: 300px; height: 200px; background: rgba(255, 255, 255, 0.05); 
             backdrop-filter: blur(15px); border: 1.5px solid var(--gold); 
             border-radius: 0 0 15px 15px; cursor: pointer; position: relative;
-            box-shadow: 0 0 30px rgba(197, 160, 89, 0.2);
         }
         .flap { 
             position: absolute; top: 0; left: 0; width: 0; height: 0; 
@@ -79,18 +85,25 @@
         .modal-scroll-content { background: var(--glass); color: #fff; width: 95%; max-width: 500px; padding: 50px; border: 1px solid var(--gold); border-radius: 15px; text-align: center; }
 
         /* PHASE 3: FINAL GREETING */
-        #stage-greet { background: transparent; }
-        .greeting-text { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: 4rem; color: var(--gold); opacity: 0; filter: drop-shadow(0 0 20px rgba(197, 160, 89, 0.4)); }
+        .greeting-text { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: 3.5rem; color: var(--gold); opacity: 0; line-height: 1.2; }
 
-        /* PHASE 4: IMPERIAL COUNTDOWN */
-        #stage-imperial { display: none; position: relative; padding: 60px 0; flex-direction: column; align-items: center; overflow-y: auto; }
+        /* PHASE 4: IMPERIAL COUNTDOWN (FIXED SCROLL) */
+        #stage-imperial { 
+            display: none; 
+            position: relative; /* Changed from fixed to allow scrolling */
+            min-height: 100vh;
+            padding: 80px 20px; 
+            flex-direction: column; 
+            align-items: center; 
+            z-index: 10;
+        }
         .imperial-card { opacity: 0; transform: translateY(30px); width: 90%; max-width: 550px; padding: 60px 40px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 40px; text-align: center; }
         .imperial-btn { 
             background: rgba(255, 255, 255, 0.9); color: #1a0a2e; padding: 14px 28px; border-radius: 50px; 
-            text-decoration: none; font-weight: 600; display: inline-block; margin: 6px; 
-            transition: all 0.4s ease; font-size: 0.85rem; border: 1px solid transparent;
+            text-decoration: none; font-weight: 600; display: inline-block; margin: 8px; 
+            transition: all 0.4s ease; font-size: 0.85rem;
         }
-        .imperial-btn:hover { background: transparent; color: #fff; border-color: #fff; transform: translateY(-3px); }
+        .imperial-btn:hover { background: var(--gold); color: #fff; transform: translateY(-3px); }
     </style>
 </head>
 <body>
@@ -99,7 +112,7 @@
         <div class="glass-card" id="main-card">
             <h2 style="font-family: 'Cinzel'; letter-spacing: 8px; font-size: 0.8rem; color: var(--gold); margin-bottom: 10px;">THE FINAL COUNTDOWN</h2>
             <div id="timer-init">05</div>
-            <div id="button-grid-init" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 420px; opacity: 0.6;"></div>
+            <div id="button-grid-init" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 420px;"></div>
         </div>
     </div>
 
@@ -118,30 +131,29 @@
     <div id="letter-modal">
         <div class="modal-scroll-content" id="modal">
             <h2 style="font-family: 'Dancing Script'; color: var(--gold); font-size: 2.5rem; margin-bottom: 25px;">To My Baby Seal,</h2>
-            <p style="font-size: 1.1rem; line-height: 1.8; font-weight: 300; margin-bottom: 30px;">Hi baby, it’s finally your birthday Yipiieieieieieiie. All these days led to this moment . mY kid turns 19 today. I'm so so so proud of you my love. You are the best thing that has happened to me ever in my entre life. Ik i havent been the best boyfriend an i couldve done a lot better to make this day special, but I just want yo to know that you matter the most to me , you will always be my priority and i will always love you. Chal ab partyyyyyyyyy</p>
+            <p style="font-size: 1.1rem; line-height: 1.8; font-weight: 300; margin-bottom: 30px;">Hi baby, it’s finally your birthday! Yipiieieieieieiie. All these days led to this moment. My kid turns 19 today. I'm so so so proud of you my love. You are the best thing that has happened to me ever in my entire life. I know I haven't been the best boyfriend and I could've done a lot better to make this day special, but I just want you to know that you matter the most to me, you will always be my priority and I will always love you. Chal ab partyyyyyyyyy!</p>
             <button style="background:transparent; border:1px solid var(--gold); color:var(--gold); padding:12px 30px; cursor:pointer; border-radius:30px; font-family: 'Cinzel'; letter-spacing: 2px;" onclick="closeLetter()">CLOSE NOTE</button>
         </div>
     </div>
 
     <div id="stage-greet" class="stage">
-        <h1 class="greeting-text">Happy Birthday, my Princess<br> I LOVE YOU </h1>
+        <h1 class="greeting-text">Happy Birthday, my Princess<br>I LOVE YOU</h1>
     </div>
 
-    <div id="stage-imperial" class="stage">
+    <div id="stage-imperial">
         <div class="imperial-card" id="finalCard">
             <h1 style="font-family: 'Dancing Script'; font-size: 4rem; margin-bottom: 10px;">YIPPPIEEEE</h1>
             <div style="font-family: 'Cinzel'; font-size: 0.7rem; letter-spacing: 10px; color: var(--gold); margin-bottom: 40px;">HAPPY BIRTHDAYYY BABYYYY</div>
             <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 40px;">
-                <div><span style="font-size: 3rem; display: block;" id="d-final">00</span><small style="letter-spacing: 2px;">DAYS</small></div>
-                <div><span style="font-size: 3rem; display: block;" id="h-final">00</span><small style="letter-spacing: 2px;">HOURS</small></div>
-                <div><span style="font-size: 3rem; display: block;" id="m-final">00</span><small style="letter-spacing: 2px;">MINS</small></div>
+                <div><span style="font-size: 3rem; display: block;" id="d-final">00</span><small>DAYS</small></div>
+                <div><span style="font-size: 3rem; display: block;" id="h-final">00</span><small>HOURS</small></div>
+                <div><span style="font-size: 3rem; display: block;" id="m-final">00</span><small>MINS</small></div>
             </div>
-            <div id="final-btn-grid"></div>
+            <div id="final-btn-grid" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
         </div>
     </div>
 
     <script>
-        // Setup grids
         const gridInit = document.getElementById('button-grid-init');
         const finalGrid = document.getElementById('final-btn-grid');
         for(let i=1; i<=19; i++) {
@@ -152,23 +164,21 @@
             const fb = document.createElement('a');
             fb.href = (i === 19) ? "19.html" : `${i}.html`;
             fb.className = 'imperial-btn';
-            fb.innerHTML = `Day ${i}`;
+            fb.innerHTML = `Day ${i} 🥳`;
             finalGrid.appendChild(fb);
         }
 
-        // Timer
         let timeLeft = 5;
         const countdown = setInterval(() => {
             timeLeft--;
-            document.getElementById('timer-init').innerText = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+            document.getElementById('timer-init').innerText = `0${timeLeft}`;
             if(timeLeft === 0) { clearInterval(countdown); startTransition(); }
         }, 1000);
 
         function startTransition() {
             const tl = gsap.timeline();
-            // Slowed down the initial exit for cinematic weight
-            tl.to(".btn-dummy", { opacity: 0, scale: 0.5, duration: 1.2, stagger: 0.03, ease: "power4.inOut" });
-            tl.to("#main-card", { opacity: 0, y: 20, duration: 1, ease: "power2.inOut" }, "-=0.8");
+            tl.to(".btn-dummy", { opacity: 0, scale: 0.5, duration: 1.5, stagger: 0.03, ease: "power4.inOut" });
+            tl.to("#main-card", { opacity: 0, y: 20, duration: 1.2 }, "-=1.0");
             tl.set("#stage-index", { display: "none" });
             tl.set("#stage-main", { display: "flex" });
             tl.add(runPhotoSequence);
@@ -187,39 +197,35 @@
                 viewport.appendChild(el);
                 photos.push(el);
 
-                const startX = (Math.random() - 0.5) * 4500; 
-                const startY = (Math.random() - 0.5) * 3500;
-                const randomTilt = (Math.random() - 0.5) * 25;
-
                 tl.fromTo(el, 
-                    { opacity: 0, x: startX, y: startY, scale: 2, rotation: (Math.random()-0.5)*120 },
-                    { opacity: 1, x: 0, y: 0, scale: 1, rotation: randomTilt, duration: 0.9, ease: "power2.out" }
+                    { opacity: 0, x: (Math.random()-0.5)*4000, y: (Math.random()-0.5)*3000, scale: 2, rotation: (Math.random()-0.5)*120 },
+                    { opacity: 1, x: 0, y: 0, scale: 1, rotation: (Math.random()-0.5)*25, duration: 0.9, ease: "power2.out" }
                 );
 
-                if(i === 0) tl.to(seqText, { opacity: 1, duration: 0.8, onStart: () => seqText.innerText = "19 Days" }, 0);
-                if(i === 6) tl.to(seqText, { opacity: 0, scale: 0.9, duration: 0.4, onComplete: () => { seqText.innerText = "19 Gifts"; gsap.to(seqText, {opacity:1, scale:1}) }});
-                if(i === 13) tl.to(seqText, { opacity: 0, scale: 0.9, duration: 0.4, onComplete: () => { seqText.innerText = "All lead to this..."; gsap.to(seqText, {opacity:1, scale:1}) }});
+                if(i === 0) tl.to(seqText, { opacity: 1, duration: 1, onStart: () => seqText.innerText = "19 Days" }, 0);
+                if(i === 6) tl.to(seqText, { opacity: 0, duration: 0.4, onComplete: () => { seqText.innerText = "19 Gifts"; gsap.to(seqText, {opacity:1}) }});
+                if(i === 13) tl.to(seqText, { opacity: 0, duration: 0.4, onComplete: () => { seqText.innerText = "All lead to this..."; gsap.to(seqText, {opacity:1}) }});
             }
 
-            tl.to(seqText, { opacity: 0, filter: "blur(10px)", duration: 1.2, delay: 1 });
+            tl.to(seqText, { opacity: 0, filter: "blur(10px)", duration: 1.5, delay: 1 });
             tl.to(photos, { 
                 x: (i) => Math.cos((i / 19) * Math.PI * 2) * (i % 3 === 0 ? 450 : 2500), 
                 y: (i) => Math.sin((i / 19) * Math.PI * 2) * (i % 3 === 0 ? 450 : 2500), 
-                opacity: (i) => i % 3 === 0 ? 0.2 : 0, duration: 2.8, ease: "power3.inOut" 
+                opacity: (i) => i % 3 === 0 ? 0.2 : 0, duration: 3, ease: "power3.inOut" 
             }, "-=0.8");
-            tl.to("#overlay-content", { display: "flex", opacity: 1, scale: 1, duration: 2, ease: "power4.out" });
+            tl.to("#overlay-content", { display: "flex", opacity: 1, duration: 2 });
         }
 
         function openLetter() {
             document.getElementById('flap').style.transform = "rotateX(180deg)";
             setTimeout(() => {
                 document.getElementById('letter-modal').style.display = 'flex';
-                gsap.fromTo("#modal", { opacity:0, scale: 0.9, y: 30 }, { opacity:1, scale: 1, y: 0, duration: 1, ease: "power4.out" });
+                gsap.fromTo("#modal", { opacity:0, scale: 0.9, y: 30 }, { opacity:1, scale: 1, y: 0, duration: 1 });
             }, 600);
         }
 
         function closeLetter() {
-            gsap.to("#modal", { opacity: 0, scale: 1.1, filter: "blur(10px)", duration: 0.8, onComplete: () => {
+            gsap.to("#modal", { opacity: 0, filter: "blur(10px)", duration: 0.8, onComplete: () => {
                 document.getElementById('letter-modal').style.display = 'none';
                 document.getElementById('stage-main').style.display = 'none';
                 document.getElementById('stage-greet').style.display = 'flex';
@@ -237,7 +243,9 @@
 
         function showFinalImperial() {
             document.getElementById('stage-greet').style.display = 'none';
-            document.getElementById('stage-imperial').style.display = 'flex';
+            document.body.style.overflowY = 'auto'; // Re-enable scrolling
+            const finalStage = document.getElementById('stage-imperial');
+            finalStage.style.display = 'flex';
             gsap.fromTo("#finalCard", { opacity:0, y:40 }, { opacity:1, y:0, duration:2.5, ease: "power4.out" });
         }
 
